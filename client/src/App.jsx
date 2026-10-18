@@ -9,13 +9,26 @@ import ImageAnalysis from './pages/ImageAnalysis';
 import QualityPredictions from './pages/QualityPredictions';
 import Placeholder from './pages/Placeholder';
 import ForecastingModule from './pages/ForecastingModule';
+import DehydrationLayout from './components/DehydrationLayout';
+import DehydrationDashboard from './pages/DehydrationDashboard';
+import DryingSessions, { DryingSessionDetails } from './pages/DryingSessions';
+import DehydrationPrediction from './pages/DehydrationPrediction';
+import DryingAnalytics from './pages/DryingAnalytics';
+import ChamberControls from './pages/ChamberControls';
 
 export default function App() {
   return <BrowserRouter>
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<Home />} />
-        <Route path="module-01" element={<Placeholder id="01" />} />
+        <Route path="module-01" element={<DehydrationLayout />}>
+          <Route index element={<DehydrationDashboard />} />
+          <Route path="sessions" element={<DryingSessions />} />
+          <Route path="sessions/:batchId" element={<DryingSessionDetails />} />
+          <Route path="rdt" element={<DehydrationPrediction />} />
+          <Route path="analytics" element={<DryingAnalytics />} />
+          <Route path="controls" element={<ChamberControls />} />
+        </Route>
         <Route path="module-02" element={<QualityLayout />}>
           <Route index element={<QualityDashboard />} />
           <Route path="samples" element={<SampleManagement />} />
