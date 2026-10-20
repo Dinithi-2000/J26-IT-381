@@ -66,3 +66,6 @@ full four-class layout. Outputs land in `experiments/mobilenetv2_baseline/` (`mo
 Baselines for E1/E3 (colour-histogram + classical classifier; random-image vs sample-wise split),
 calibration plots, and a FastAPI endpoint `POST /api/v1/inference/visible-condition` that loads
 `model.keras` and returns class probabilities plus `model_version`.
+
+
+For the reviewed two-class image-condition pipeline, dataset conflict audit, separate inference service and dashboard integration, see [IMAGE_CONDITION_GUIDE.md](IMAGE_CONDITION_GUIDE.md). The earlier baseline scripts remain available here. No trained-model accuracy is claimed by the new pipeline.

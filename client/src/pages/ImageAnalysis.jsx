@@ -1,3 +1,4 @@
+import ImageClassifierPanel from '../components/ImageClassifierPanel';
 import { useQuality } from '../components/QualityProvider';
 import { DataState, ImageComparison, Panel, SampleSelector } from '../components/QualityUI';
 import { formatTimestamp } from '../data/demoQuality';
@@ -7,9 +8,10 @@ export default function ImageAnalysis() {
   const { selected, demoEnabled } = useQuality();
   return <>
     <DataState /><SampleSelector />
+    <ImageClassifierPanel />
     <Panel title="Baseline and current, side by side." eyebrow="ESP32-CAM / IMAGE INTERFACE" badge={demoEnabled ? 'DEMO DATA' : 'STORED IMAGES'}>
       <ImageComparison sample={selected} />
-      <p>{demoEnabled ? 'Demo references are illustrations and cannot assess sample quality.' : 'Stored photographs are supplied by authenticated uploads. No image analysis model is connected.'}</p>
+      <p>{demoEnabled ? 'Demo references are illustrations and cannot assess sample quality.' : 'Stored photographs are supplied by authenticated uploads. Use the separate Model 01 panel above for image-condition classification.'}</p>
     </Panel>
     <div className="quality-grid hardware-panel">
       <Panel title="Visible defect screening" eyebrow="COMPUTER VISION">

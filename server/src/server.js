@@ -1,5 +1,6 @@
 import { Sample, SensorReading, SampleImage, DegradationPrediction } from './module02/models.js';
 import { createModule02Router } from './module02/routes.js';
+import { createImageRouter } from './module02-image/routes.js';
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
@@ -42,6 +43,7 @@ app.get("/api/model-info", async (_request, response, next) => {
 });
 
 app.use("/api/predictions", predictionRoutes);
+app.use("/api/module-02/image-classification", createImageRouter());
 app.use("/api", createModule02Router(module02));
 
 app.use((_request, response) => {
