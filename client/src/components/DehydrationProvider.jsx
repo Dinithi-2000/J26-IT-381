@@ -10,20 +10,32 @@ export function DehydrationProvider({ children, service = dehydrationService }) 
   const [demoControls, setDemoControls] = useState({});
   const [controlEvents, setControlEvents] = useState([]);
   const [remote, setRemote] = useState({ ...empty, status: 'loading', error: '' });
+  const [now, setNow] = useState(Date.now);
   useEffect(() => {
+    if (demoEnabled) return;
     const controller = new AbortController();
-    if (!demoEnabled) {
-      setRemote({ ...empty, status: 'loading', error: '' });
-      Promise.resolve().then(() => service.getWorkspace({ signal: controller.signal })).then(data => {
-        if (!controller.signal.aborted) setRemote({ ...empty, ...data, status: data ? 'ready' : 'disconnected', error: '' });
-      }).catch(error => {
+    let timeout;
+    setRemote({ ...empty, status: 'loading', error: '' });
+    async function refresh() {
+      try {
+        const data = await service.getWorkspace({ signal: controller.signal });
+        if (!controller.signal.aborted) setRemote({ ...empty, ...data, status: data?.telemetry ? 'ready' : 'disconnected', error: '' });
+      } catch (error) {
         if (!controller.signal.aborted) setRemote({ ...empty, status: 'error', error: error.message });
-      });
+      } finally {
+        if (!controller.signal.aborted) {
+          setNow(Date.now());
+          timeout = setTimeout(refresh, 5000);
+        }
+      }
     }
-    return () => controller.abort();
+    refresh();
+    const clock = setInterval(() => setNow(Date.now()), 1000);
+    return () => { controller.abort(); clearTimeout(timeout); clearInterval(clock); };
   }, [demoEnabled, service]);
 
   function setDemoEnabled(enabled) {
+    if (!enabled) setRemote({ ...empty, status: 'loading', error: '' });
     setDemo(enabled);
     setDemoControls({});
     setControlEvents([]);
@@ -48,7 +60,11 @@ export function DehydrationProvider({ children, service = dehydrationService }) 
     sessions: [{ ...demoDryingSessions[0], ...telemetry, events: [...controlEvents, ...demoDryingEvents] }, ...demoDryingSessions.slice(1)],
     events: [...controlEvents, ...demoDryingEvents], predictionConnected: false, status: 'demo', error: '',
   } : remote;
-  return <DehydrationContext.Provider value={{ ...data, demoEnabled, setDemoEnabled, simulateControl }}>{children}</DehydrationContext.Provider>;
+  const timestamp = telemetry?.updatedAt || telemetry?.createdAt;
+  const age = timestamp ? now - new Date(timestamp).getTime() : NaN;
+  const liveConnected = !demoEnabled && Number.isFinite(age) && age >= 0 && age < 120000;
+  const predictionConnected = liveConnected && telemetry?.mlStatus === 'ONLINE';
+  return <DehydrationContext.Provider value={{ ...data, liveConnected, predictionConnected, demoEnabled, setDemoEnabled, simulateControl }}>{children}</DehydrationContext.Provider>;
 }
 
 export function useDehydration() {

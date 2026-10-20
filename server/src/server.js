@@ -9,6 +9,7 @@ import { connectDatabase, isDatabaseConnected } from "./config/db.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import predictionRoutes from "./routes/predictionRoutes.js";
 import { getModelInfo } from "./services/mlService.js";
+import dehydrationRoutes from "./routes/dehydrationRoutes.js";
 
 const serverDirectory = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: resolve(serverDirectory, "../.env") });
@@ -39,6 +40,9 @@ app.get("/api/model-info", async (_request, response, next) => {
 
 app.use("/api/predictions", predictionRoutes);
 
+app.use(
+  "/api/dehydration", dehydrationRoutes);
+
 app.use((_request, response) => {
   response.status(404).json({ message: "Route not found" });
 });
@@ -47,9 +51,16 @@ app.use(errorHandler);
 
 async function startServer() {
   await connectDatabase();
-  app.listen(port, () => {
-    console.log(`Server listening on http://localhost:${port}`);
-  });
+  app.listen(
+  port,
+  "0.0.0.0",
+  () => {
+
+    console.log(
+      `Server listening on port ${port}`
+    );
+  }
+);
 }
 
 startServer().catch((error) => {
