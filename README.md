@@ -237,3 +237,6 @@ Controls send no hardware commands. Offline settings are disabled; demo relay sw
 - Adapter/fixture consistency checks passed: the default adapter returns no data; historical endpoints agree with telemetry/session values; duration formatting handles unavailable data.
 - Desktop/mobile screenshots were reviewed. No application console errors or uncaught exceptions were observed, and no hardware/API requests were made. The pre-existing global `/favicon.ico` request returns 404; shared branding/metadata files were not changed.
 - Module 02 components/styles, the shared header/footer, other research modules and backend/ML sources are unchanged. Actual hardware commands and model inference cannot be tested because neither integration is configured.
+
+
+Module 02 image-condition prototype: see [training, dataset review, API and dashboard setup](ml-module02/IMAGE_CONDITION_GUIDE.md). The local data audit must be resolved before claiming a trained model.

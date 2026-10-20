@@ -4,3 +4,12 @@ dist/
 *.log
 __pycache__/
 .venv/
+
+# Module 02 training artifacts, private photos, local storage
+ml-module02/artifacts/
+ml-module02/data/
+ml-module02/*.egg-info/
+ml-module02/src/*.egg-info/
+server/storage/
+
+.venv-quality/

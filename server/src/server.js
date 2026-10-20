@@ -1,3 +1,4 @@
+import { createImageRouter } from './module02-image/routes.js';
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
@@ -38,6 +39,7 @@ app.get("/api/model-info", async (_request, response, next) => {
 });
 
 app.use("/api/predictions", predictionRoutes);
+app.use("/api/module-02/image-classification", createImageRouter());
 
 app.use((_request, response) => {
   response.status(404).json({ message: "Route not found" });

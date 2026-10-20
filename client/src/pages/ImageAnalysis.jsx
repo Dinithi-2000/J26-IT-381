@@ -1,3 +1,4 @@
+import ImageClassifierPanel from '../components/ImageClassifierPanel';
 import { useQuality } from '../components/QualityProvider';
 import { DataState, ImageComparison, Panel, SampleSelector } from '../components/QualityUI';
 import { formatTimestamp } from '../data/demoQuality';
@@ -7,6 +8,7 @@ export default function ImageAnalysis() {
   const { selected, demoEnabled } = useQuality();
   return <>
     <DataState /><SampleSelector />
+    <ImageClassifierPanel />
     <Panel title="Baseline and current, side by side." eyebrow="ESP32-CAM / IMAGE INTERFACE" badge={demoEnabled ? 'DEMO DATA' : 'NOT CONNECTED'}>
       <ImageComparison sample={selected} />
       <p>ESP32-CAM capture is not integrated. Demo references are the same botanical illustration; they cannot be used to assess sample quality or visual change.</p>
