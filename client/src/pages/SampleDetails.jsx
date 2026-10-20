@@ -6,7 +6,7 @@ import { formatTimestamp } from '../data/demoQuality';
 
 export default function SampleDetails() {
   const { id } = useParams();
-  const { samples, demoEnabled, status, setSelectedId } = useQuality();
+  const { samples, demoEnabled, status, setSelectedId, deviceStatus } = useQuality();
   const sample = samples.find(item => item.id === id);
   // Carry the opened sample into image and prediction views for a continuous workflow.
   useEffect(() => { if (sample) setSelectedId(sample.id); }, [sample, setSelectedId]);
@@ -23,14 +23,14 @@ export default function SampleDetails() {
           {[['Batch ID', sample.batchId], ['Description', sample.grade], ['Storage setting', sample.storage],
             ['Storage start date', sample.storageStartDate], ['Initial weight', `${sample.initialWeight} g`],
             ['Latest measurement', formatTimestamp(sample.records.at(-1)?.timestamp)],
-            ['Overall quality', 'Not assessed'], ['Device connection', 'Not integrated'],
+            ['Overall quality', 'Not assessed'], ['Device connection', deviceStatus],
           ].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
         </dl>
       </Panel>
       <MeasurementHistory sample={sample} />
       <Panel title="Image history" eyebrow="VISUAL REFERENCES" className="hardware-panel">
         <ImageComparison sample={sample} />
-        <p>{sample.images.length ? 'Demo image metadata references a shared illustration, not actual sample photographs.' : 'No images recorded. Camera capture is not integrated.'}</p>
+        <p>{demoEnabled ? 'Demo references are illustrations, not sample photographs.' : 'Stored image references appear when available; capture requires authenticated device uploads.'}</p>
         {sample.images.length > 0 && <ul className="image-history">{sample.images.map(image => <li key={image.id}>
           <strong>{image.role} reference</strong><span>{image.id}</span><span>{formatTimestamp(image.timestamp)}</span>
         </li>)}</ul>}

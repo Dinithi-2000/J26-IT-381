@@ -7,9 +7,9 @@ export default function ImageAnalysis() {
   const { selected, demoEnabled } = useQuality();
   return <>
     <DataState /><SampleSelector />
-    <Panel title="Baseline and current, side by side." eyebrow="ESP32-CAM / IMAGE INTERFACE" badge={demoEnabled ? 'DEMO DATA' : 'NOT CONNECTED'}>
+    <Panel title="Baseline and current, side by side." eyebrow="ESP32-CAM / IMAGE INTERFACE" badge={demoEnabled ? 'DEMO DATA' : 'STORED IMAGES'}>
       <ImageComparison sample={selected} />
-      <p>ESP32-CAM capture is not integrated. Demo references are the same botanical illustration; they cannot be used to assess sample quality or visual change.</p>
+      <p>{demoEnabled ? 'Demo references are illustrations and cannot assess sample quality.' : 'Stored photographs are supplied by authenticated uploads. No image analysis model is connected.'}</p>
     </Panel>
     <div className="quality-grid hardware-panel">
       <Panel title="Visible defect screening" eyebrow="COMPUTER VISION">
@@ -25,10 +25,11 @@ export default function ImageAnalysis() {
       </Panel>
     </div>
     <Panel title="Sample image history" eyebrow="TRACEABLE REFERENCES" className="hardware-panel">
+      {selected?.imageTotal > 200 && <p>Showing the latest 200 of {selected.imageTotal} image records. Older records are available through the API.</p>}
       {!selected?.images.length ? <p>No image history available.</p> : <div className="table-wrap"><table>
-        <caption>{demoEnabled ? 'DEMO DATA · ' : ''}{selected.id} · illustrative metadata only</caption>
-        <thead><tr><th scope="col">Reference ID</th><th scope="col">Role</th><th scope="col">Fixture timestamp</th><th scope="col">Source</th></tr></thead>
-        <tbody>{selected.images.map(image => <tr key={image.id}><td>{image.id}</td><td>{image.role}</td><td>{formatTimestamp(image.timestamp)}</td><td>Botanical illustration</td></tr>)}</tbody>
+        <caption>{demoEnabled ? 'DEMO DATA · ' : ''}{selected.id} - {demoEnabled ? 'illustrative metadata' : 'captured image metadata'}</caption>
+        <thead><tr><th scope="col">Reference ID</th><th scope="col">Role</th><th scope="col">Recorded timestamp</th><th scope="col">Source</th></tr></thead>
+        <tbody>{selected.images.map(image => <tr key={image.id}><td>{image.id}</td><td>{image.role}</td><td>{formatTimestamp(image.timestamp)}</td><td>{demoEnabled ? 'Botanical illustration' : image.deviceId}</td></tr>)}</tbody>
       </table></div>}
     </Panel>
   </>;

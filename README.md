@@ -207,3 +207,6 @@ The existing layout and botanical palette are retained. Text now uses a shared r
 - These are targeted rendered contrast/layout checks, not a claim of a complete WCAG conformance certification. Photographic backgrounds received additional solid text backdrops and visual review. Real end-to-end price predictions still require MongoDB and the existing ML service.
 
 Only task-owned temporary browser profiles and QA artifacts were removed when disk space prevented saving audit screenshots/reports. Unrelated files were not removed.
+
+
+Module 02 backend and API setup: see [MODULE02_API.md](MODULE02_API.md). This supersedes earlier frontend-only integration notes for the storage-quality module.

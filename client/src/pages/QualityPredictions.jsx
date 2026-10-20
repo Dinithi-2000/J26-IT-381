@@ -8,6 +8,10 @@ export default function QualityPredictions() {
   const { selected } = useQuality();
   return <>
     <SampleSelector />
+    <Panel title="Stored prediction history" eyebrow="VALIDATED MODEL OUTPUTS ONLY">
+      {selected?.predictionTotal > 200 && <p>Showing the latest 200 of {selected.predictionTotal} predictions. Older records are available through the API.</p>}
+      {!selected?.predictions?.length ? <p>No model predictions have been stored for this sample.</p> : <div className="table-wrap"><table><thead><tr><th>Timestamp</th><th>Model</th><th>Horizon</th><th>Risk</th></tr></thead><tbody>{selected.predictions.map(row=><tr key={row._id}><td>{row.predictedAt}</td><td>{row.modelVersion}</td><td>{row.horizonDays} days</td><td>{row.riskCategory}</td></tr>)}</tbody></table></div>}
+    </Panel>
     <div className="quality-grid">
       <Panel title="Future degradation risk" eyebrow="AI PREDICTION WORKSPACE" className="risk-panel" badge="MODEL UNAVAILABLE">
         <span className="risk-symbol"><Icon name="shield" size={46} /></span><h3>No prediction generated</h3>

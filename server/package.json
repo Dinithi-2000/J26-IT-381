@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test": "node --test --test-concurrency=1 --test-timeout=30000 test/module02.test.js test/quality-client.test.js test/mongo.integration.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

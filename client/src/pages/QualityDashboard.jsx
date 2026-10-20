@@ -14,9 +14,9 @@ const measurements = {
   color: { label: 'RGB color', series: ['Red', 'Green', 'Blue'].map((name, index) => ({ name, color: ['#AD6652', '#426B53', '#527F9A'][index], read: record => record.rgb[index] })) },
 };
 export default function QualityDashboard() {
-  const { selected: sample, demoEnabled } = useQuality();
+  const { selected: sample, demoEnabled, deviceStatus } = useQuality();
   const [metric, setMetric] = useState('weight');
-  const current = sample?.records.at(-1), baseline = sample?.records[0];
+  const current = sample?.records.at(-1), baseline = sample?.baselineRecord || sample?.records[0];
   const change = sample ? weightChange(sample) : null;
   const measurement = measurements[metric];
   const historyLabel = demoEnabled ? 'HISTORICAL · DEMO DATA' : 'HISTORICAL RECORDS';
@@ -26,7 +26,7 @@ export default function QualityDashboard() {
       <SampleSelector />
       <div className="quality-summary" aria-label="Quality overview">
         <div><span>Overall quality</span><strong><span className="connection-dot neutral" />Not assessed</strong></div>
-        <div><span>Sensor connection</span><strong><span className="connection-dot offline" />Offline · not integrated</strong></div>
+        <div><span>Sensor connection</span><strong><span className="connection-dot offline" />{deviceStatus}</strong></div>
         <div><span>Latest {demoEnabled ? 'demo ' : ''}measurement</span><strong>{formatTimestamp(current?.timestamp)}</strong></div>
         <div><span>Storage started</span><strong>{sample.storageStartDate}</strong></div>
       </div>
@@ -67,7 +67,7 @@ export default function QualityDashboard() {
             </div>
           </div>)}</div>
           <p className="panel-caption">Raw RGB display (0–255), uncalibrated. Swatches are visual references, not a validated color assessment.</p>
-          <div className="research-note"><Icon name="info" size={17} /><div><strong>CIELAB & ΔE awaiting calibrated data</strong><p>No color-difference result is inferred from these fixtures.</p></div></div>
+          <div className="research-note"><Icon name="info" size={17} /><div><strong>CIELAB & ΔE awaiting calibrated data</strong><p>No color-difference result is inferred without calibration.</p></div></div>
         </Panel>
         <Panel title="Gas resistance" eyebrow="BME688 / ENVIRONMENTAL RESPONSE" badge={demoEnabled ? 'DEMO DATA' : 'HISTORICAL'}>
           <div className="chart-reading"><span>{current?.gasResistanceOhms.toLocaleString() ?? '—'}<small>Ω</small></span><Icon name="wind" size={22} /></div>
@@ -91,9 +91,9 @@ export default function QualityDashboard() {
       </div>
       <div id="measurement-history"><MeasurementHistory sample={sample} /></div>
     </>}
-    <Panel title="A connected sensing foundation" eyebrow="PLANNED HARDWARE / NOT CONNECTED" className="hardware-panel">
+    <Panel title="A connected sensing foundation" eyebrow="DEVICE INGESTION API" className="hardware-panel">
       <div className="hardware-chips">{['ESP32-S3', 'ESP32-CAM', 'HX711 + 10 kg load cell', 'TCS34725 RGB', 'BME688', '16×2 I2C LCD'].map(item => <span key={item}><span className="connection-dot offline" />{item}</span>)}</div>
-      <p>No sensor polling, image capture, or hardware controls are active. All integrations remain outside this frontend redesign.</p>
+      <p>Authenticated HTTP telemetry and image ingestion are available. Firmware and hardware controls are not implemented here. The dashboard reads stored records; recent telemetry does not prove a continuous live connection.</p>
     </Panel>
   </>;
 }

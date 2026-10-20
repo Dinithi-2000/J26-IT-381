@@ -24,7 +24,7 @@ export function DataState() {
   if (status === 'demo' || status === 'ready') return null;
   const content = {
     loading: ['Checking data availability', 'Please wait while the frontend checks its configured data source.'],
-    disconnected: ['Your research workspace is ready.', 'ESP32-S3 sensing and ESP32-CAM image capture are not integrated. Enable demo data above to explore synthetic samples.'],
+    disconnected: ['Your research workspace is ready.', 'The quality backend could not be reached. Start the backend, check its database connection, or explicitly enable demonstration mode.'],
     empty: ['No samples available', 'The configured data source returned an empty sample list.'],
     error: ['Unable to load quality data', error || 'The data source could not be read. Try again.'],
   }[status];
@@ -54,6 +54,7 @@ export function MeasurementHistory({ sample }) {
   const { demoEnabled } = useQuality();
   return <Panel title="The details behind the trends." eyebrow="SAMPLE MEASUREMENT HISTORY"
     badge={`${sample.records.length} ${demoEnabled ? 'DEMO ' : ''}RECORDS`} className="measurement-history">
+    {sample.historyTotal > 200 && <p>Showing the latest 200 of {sample.historyTotal} readings. Older records are available through the paginated API.</p>}
     {!sample.records.length ? <p>No measurements recorded for this sample. Registration does not create sensor readings.</p> :
       <div className="table-wrap" tabIndex="0" role="region" aria-label={`Measurement history for ${sample.id}`}><table>
         <caption>{demoEnabled ? 'DEMO DATA · ' : ''}{sample.id} · timestamps shown in Sri Lanka time</caption>
