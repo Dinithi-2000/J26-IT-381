@@ -18,21 +18,21 @@ function NumericSetting({ id, label, value, min, max, onCommit }) {
 }
 
 export default function ChamberControls() {
-  const { telemetry: data, demoEnabled, simulateControl } = useDehydration();
+  const { telemetry: data, demoEnabled, liveConnected, simulateControl } = useDehydration();
   const manual = demoEnabled && data?.controlMode === 'Manual';
   const heaterLimited = data?.temperatureProtection === 'Heater limited';
   return <>
-    <div className="drying-section-heading"><div><p className="eyebrow">CHAMBER / RELAY SETTINGS</p><h2>Chamber controls</h2><p>Review relay states and explore the planned control interface.</p></div><StatusBadge tone={demoEnabled ? 'demo' : 'offline'}>{demoEnabled ? 'Demo control only' : 'Chamber not connected'}</StatusBadge></div>
+    <div className="drying-section-heading"><div><p className="eyebrow">CHAMBER / RELAY SETTINGS</p><h2>Chamber controls</h2><p>Review relay states and explore the planned control interface.</p></div><StatusBadge tone={demoEnabled ? 'demo' : liveConnected ? 'online' : 'offline'}>{demoEnabled ? 'Demo control only' : liveConnected ? 'Chamber connected' : 'Chamber not connected'}</StatusBadge></div>
     <div className="drying-two-grid"><Panel title="Process settings" eyebrow="HEATER / FAN / TARGETS" badge={demoEnabled ? 'DEMO CONTROL ONLY' : 'DISABLED'}>
-      <p className="panel-caption">{demoEnabled ? 'Demo control only. Changes are local to this interface and send no hardware commands. Select Manual to simulate relay changes.' : 'Chamber not connected. Hardware controls are disabled until the ESP32-S3 control integration is available.'}</p>
+      <p className="panel-caption">{demoEnabled ? 'Demo control only. Changes are local to this interface and send no hardware commands. Select Manual to simulate relay changes.' : `${liveConnected ? 'Live telemetry active.' : 'Chamber not connected.'} Hardware controls are disabled until the ESP32-S3 control integration is available.`}</p>
       <fieldset className="drying-control-fields" disabled={!demoEnabled}><legend>Chamber settings</legend>
-        <label htmlFor="drying-control-mode">Control mode<select id="drying-control-mode" value={data?.controlMode ?? 'Offline'} onChange={event => simulateControl('controlMode', event.target.value)}>
-          {!demoEnabled && <option>Offline</option>}<option>Automatic</option><option>Manual</option>
+        <label htmlFor="drying-control-mode">Control mode<select id="drying-control-mode" value={data?.controlMode ?? 'Unavailable'} onChange={event => simulateControl('controlMode', event.target.value)}>
+          {!demoEnabled && <option>Unavailable</option>}<option>Automatic</option><option>Manual</option>
         </select></label>
         {[['heaterState', 'Heater', 'sun'], ['fanState', 'Fan', 'wind']].map(([key, label, icon]) => <div className="drying-relay" key={key}>
           <div><Icon name={icon} size={21} /><span><strong>{label} relay</strong><small>ON / OFF control</small></span></div>
           <button type="button" role="switch" aria-label={`${label} relay`} aria-checked={data?.[key] === 'ON'} disabled={!manual || (key === 'heaterState' && heaterLimited)} onClick={() => simulateControl(key, data?.[key] === 'ON' ? 'OFF' : 'ON')}>
-            <span className={`drying-relay-track${data?.[key] === 'ON' ? ' is-on' : ''}`} aria-hidden="true" /><span>{demoEnabled ? data?.[key] : 'Unavailable'}</span>
+            <span className={`drying-relay-track${data?.[key] === 'ON' ? ' is-on' : ''}`} aria-hidden="true" /><span>{data?.[key] ?? 'Unavailable'}</span>
           </button>
         </div>)}
         <NumericSetting id="drying-max-temperature" label="Maximum chamber temperature (°C)" min={30} max={60} value={data?.maxTemperature} onCommit={value => simulateControl('maxTemperature', value)} />
