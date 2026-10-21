@@ -14,12 +14,15 @@ import '../../core/services/ml_service.dart';
 import '../../core/ml/hybrid_config.dart';
 import '../../core/ml/diameter_config.dart';
 import '../../core/services/diameter_service.dart';
+import '../../core/services/image_only_service.dart';
+import '../../core/ml/image_only_config.dart';
 
 enum CaptureStatus {
   idle,
   capturing,
   validating,
   awaitingMeasurement,
+  awaitingImageOnlyPrediction,
   estimatingDiameter,
   grading,
   reviewPrediction,
@@ -33,6 +36,15 @@ enum CaptureStatus {
 
 enum ScanStep { sideView, endView }
 
+enum GradingMode { imageOnly, hybrid }
+
+extension GradingModeLabel on GradingMode {
+  String get label => switch (this) {
+    GradingMode.imageOnly => '4-Class Image-Only',
+    GradingMode.hybrid => '7-Class Hybrid',
+  };
+}
+
 @immutable
 class CaptureValidationState {
   final CaptureStatus status;
@@ -45,6 +57,8 @@ class CaptureValidationState {
   final MLGradeResult? gradeResult;
   final DiameterEstimate? diameterEstimate;
   final DiameterSource diameterSource;
+  final GradingMode gradingMode;
+  final ImageOnlyGradeResult? imageOnlyResult;
 
   const CaptureValidationState({
     this.status = CaptureStatus.idle,
@@ -57,6 +71,8 @@ class CaptureValidationState {
     this.gradeResult,
     this.diameterEstimate,
     this.diameterSource = DiameterSource.aiEstimated,
+    this.gradingMode = GradingMode.hybrid,
+    this.imageOnlyResult,
   });
 
   bool get isProcessing =>
@@ -65,6 +81,12 @@ class CaptureValidationState {
       status == CaptureStatus.committing ||
       status == CaptureStatus.estimatingDiameter ||
       status == CaptureStatus.grading;
+
+  bool get canSelectGradingMode =>
+      status == CaptureStatus.idle &&
+      currentStep == ScanStep.sideView &&
+      sidePhotoPath == null &&
+      endPhotoPath == null;
 
   CaptureValidationState copyWith({
     CaptureStatus? status,
@@ -80,6 +102,7 @@ class CaptureValidationState {
     DiameterEstimate? diameterEstimate,
     bool clearEstimate = false,
     DiameterSource? diameterSource,
+    ImageOnlyGradeResult? imageOnlyResult,
   }) => CaptureValidationState(
     status: status ?? this.status,
     currentStep: currentStep ?? this.currentStep,
@@ -91,6 +114,10 @@ class CaptureValidationState {
         ? null
         : diameterEstimate ?? this.diameterEstimate,
     diameterSource: diameterSource ?? this.diameterSource,
+    gradingMode: gradingMode,
+    imageOnlyResult: clearGrade
+        ? null
+        : imageOnlyResult ?? this.imageOnlyResult,
     validationResult: clearValidation
         ? null
         : validationResult ?? this.validationResult,
@@ -176,6 +203,12 @@ class CaptureValidationController extends Notifier<CaptureValidationState> {
 
   bool _active(int generation) => !_disposed && generation == _generation;
 
+  bool selectGradingMode(GradingMode mode) {
+    if (_disposed || _busy || !state.canSelectGradingMode) return false;
+    state = CaptureValidationState(gradingMode: mode);
+    return true;
+  }
+
   Future<bool> processCapture(CameraController? cameraController) async {
     if (_busy || state.status != CaptureStatus.idle) return false;
     return _process(() async {
@@ -204,7 +237,7 @@ class CaptureValidationController extends Notifier<CaptureValidationState> {
     final generation = ++_generation;
     final step = state.currentStep;
     String? newPath;
-    var startDiameter = false;
+    var startGradingFlow = false;
     state = state.copyWith(
       status: CaptureStatus.capturing,
       clearValidation: true,
@@ -252,6 +285,7 @@ class CaptureValidationController extends Notifier<CaptureValidationState> {
       if (step == ScanStep.sideView) {
         _ownedPhotos.add(newPath);
         state = CaptureValidationState(
+          gradingMode: state.gradingMode,
           currentStep: ScanStep.endView,
           sidePhotoPath: newPath,
           validationResult: result,
@@ -266,12 +300,14 @@ class CaptureValidationController extends Notifier<CaptureValidationState> {
       }
       _ownedPhotos.add(newPath);
       state = state.copyWith(
-        status: CaptureStatus.awaitingMeasurement,
+        status: state.gradingMode == GradingMode.imageOnly
+            ? CaptureStatus.awaitingImageOnlyPrediction
+            : CaptureStatus.awaitingMeasurement,
         endPhotoPath: newPath,
         validationResult: result,
       );
       newPath = null;
-      startDiameter = true;
+      startGradingFlow = true;
       return true;
     } catch (e) {
       if (_active(generation)) {
@@ -287,10 +323,14 @@ class CaptureValidationController extends Notifier<CaptureValidationState> {
       _busy = false;
       if (_disposed) {
         _discardOwnedPhotos();
-      } else if (startDiameter && _active(generation)) {
+      } else if (startGradingFlow && _active(generation)) {
         // Start exactly once after a validated end photo is owned and capture
-        // releases its lock. Let the existing dialog display progress/cancel.
-        unawaited(estimateDiameter());
+        // releases its lock. The selected review dialog shows progress/cancel.
+        if (state.gradingMode == GradingMode.imageOnly) {
+          unawaited(gradeImageOnly());
+        } else {
+          unawaited(estimateDiameter());
+        }
       }
     }
   }
@@ -304,6 +344,7 @@ class CaptureValidationController extends Notifier<CaptureValidationState> {
 
   Future<bool> estimateDiameter() async {
     if (_busy ||
+        state.gradingMode != GradingMode.hybrid ||
         !_hasValidatedPair ||
         (state.status != CaptureStatus.awaitingMeasurement &&
             state.status != CaptureStatus.reviewPrediction)) {
@@ -355,6 +396,7 @@ class CaptureValidationController extends Notifier<CaptureValidationState> {
     DiameterSource source = DiameterSource.caliperMeasured,
   }) async {
     if (_busy ||
+        state.gradingMode != GradingMode.hybrid ||
         !_hasValidatedPair ||
         (state.status != CaptureStatus.awaitingMeasurement &&
             state.status != CaptureStatus.reviewPrediction)) {
@@ -420,7 +462,11 @@ class CaptureValidationController extends Notifier<CaptureValidationState> {
   }
 
   void changeDiameter() {
-    if (_busy || !_hasValidatedPair) return;
+    if (_busy ||
+        state.gradingMode != GradingMode.hybrid ||
+        !_hasValidatedPair) {
+      return;
+    }
     state = state.copyWith(
       status: CaptureStatus.awaitingMeasurement,
       clearGrade: true,
@@ -428,10 +474,57 @@ class CaptureValidationController extends Notifier<CaptureValidationState> {
     );
   }
 
+  Future<bool> gradeImageOnly() async {
+    if (_busy ||
+        state.gradingMode != GradingMode.imageOnly ||
+        !_hasValidatedPair ||
+        (state.status != CaptureStatus.awaitingImageOnlyPrediction &&
+            state.status != CaptureStatus.reviewPrediction)) {
+      return false;
+    }
+    _busy = true;
+    final generation = ++_generation;
+    state = state.copyWith(
+      status: CaptureStatus.grading,
+      clearGrade: true,
+      clearValidation: true,
+    );
+    try {
+      final result = await ref
+          .read(imageOnlyServiceProvider)
+          .analyzeSample(
+            sideImage: state.sidePhotoPath!,
+            endImage: state.endPhotoPath!,
+          );
+      if (!_active(generation)) return false;
+      state = state.copyWith(
+        status: CaptureStatus.reviewPrediction,
+        imageOnlyResult: result,
+      );
+      return true;
+    } catch (e) {
+      if (_active(generation)) {
+        state = state.copyWith(
+          status: CaptureStatus.awaitingImageOnlyPrediction,
+          clearGrade: true,
+          errorMessage: e is ImageOnlyException
+              ? e.message
+              : '4-Class prediction failed. Please retry or retake the photos.',
+        );
+      }
+      return false;
+    } finally {
+      _busy = false;
+      if (_disposed) _discardOwnedPhotos();
+    }
+  }
+
   Future<bool> confirmPrediction() async {
     if (_busy ||
         state.status != CaptureStatus.reviewPrediction ||
-        state.gradeResult == null ||
+        (state.gradingMode == GradingMode.imageOnly
+            ? state.imageOnlyResult == null
+            : state.gradeResult == null) ||
         !_hasValidatedPair) {
       return false;
     }
@@ -439,7 +532,9 @@ class CaptureValidationController extends Notifier<CaptureValidationState> {
     final generation = ++_generation;
     final side = state.sidePhotoPath!;
     final end = state.endPhotoPath!;
-    final result = state.gradeResult!;
+    final result = state.gradeResult;
+    final imageOnlyResult = state.imageOnlyResult;
+    final mode = state.gradingMode;
     state = state.copyWith(
       status: CaptureStatus.committing,
       clearValidation: true,
@@ -447,17 +542,24 @@ class CaptureValidationController extends Notifier<CaptureValidationState> {
     try {
       final userId =
           ref.read(authServiceProvider).currentUser?.uid ?? 'inspector-1';
-      final sampleId = await ref
-          .read(sampleRepositoryProvider)
-          .createHybridSample(
-            userId,
-            result,
-            sidePhotoLocalPath: side,
-            endPhotoLocalPath: end,
-            isCurrent: () => _active(generation),
-            diameterSource: state.diameterSource,
-            diameterEstimate: state.diameterEstimate,
-          );
+      final repository = ref.read(sampleRepositoryProvider);
+      final sampleId = mode == GradingMode.imageOnly
+          ? await repository.createImageOnlySample(
+              userId,
+              imageOnlyResult!,
+              sidePhotoLocalPath: side,
+              endPhotoLocalPath: end,
+              isCurrent: () => _active(generation),
+            )
+          : await repository.createHybridSample(
+              userId,
+              result!,
+              sidePhotoLocalPath: side,
+              endPhotoLocalPath: end,
+              isCurrent: () => _active(generation),
+              diameterSource: state.diameterSource,
+              diameterEstimate: state.diameterEstimate,
+            );
       _ownedPhotos.removeAll([side, end]);
       if (!_active(generation)) return false;
       state = state.copyWith(status: CaptureStatus.success, sampleId: sampleId);
@@ -483,6 +585,7 @@ class CaptureValidationController extends Notifier<CaptureValidationState> {
     _ownedPhotos.remove(end);
     unawaited(_storage.delete(end));
     state = CaptureValidationState(
+      gradingMode: state.gradingMode,
       currentStep: ScanStep.endView,
       sidePhotoPath: state.sidePhotoPath,
     );
@@ -510,6 +613,6 @@ class CaptureValidationController extends Notifier<CaptureValidationState> {
     _generation++;
     _retryBytes = null;
     _discardOwnedPhotos();
-    state = const CaptureValidationState();
+    state = CaptureValidationState(gradingMode: state.gradingMode);
   }
 }
