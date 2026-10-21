@@ -43,11 +43,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDOC-PLACEHOLDER-KEY-ANDROID',
-    appId: '1:1234567890:android:1234567890',
-    messagingSenderId: '1234567890',
-    projectId: 'quillgrade-demo',
-    storageBucket: 'quillgrade-demo.appspot.com',
+    apiKey: 'AIzaSyDWIddEtWiR76ELfgvTIq67FJa8r-2Ky5s',
+    appId: '1:442575227503:android:ee623e70d899d5b564db9a',
+    messagingSenderId: '442575227503',
+    projectId: 'quillgrade-cinnasense',
+    storageBucket: 'quillgrade-cinnasense.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
