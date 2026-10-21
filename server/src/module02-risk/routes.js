@@ -14,6 +14,7 @@ function timestamp(value, name) {
 }
 
 export function storedReadingInput(sample, reading, now = Date.now()) {
+  if (reading.temperatureC == null || reading.relativeHumidityPercent == null) fail(400, 'ENVIRONMENT_REQUIRED', 'Temperature and humidity inputs required for risk prediction.');
   const start = timestamp(sample.storageStartDate, 'storageStartDate');
   const recorded = timestamp(reading.recordedAt, 'recordedAt');
   if (start > now || recorded > now) fail(400, 'FUTURE_READING', 'Storage start and reading timestamps cannot be in the future.');
@@ -67,6 +68,11 @@ export function createRiskRouter({Sample = DefaultSample, SensorReading = Defaul
       validationStatus: 'not_scientifically_validated', validatedForRealWorldUse: false,
       warning: output.warning, predictionHorizonDays: null, predictionHorizonVerified: false,
       horizonNote: output.horizon_note, createdAt: savedAt, updatedAt: savedAt};
+    if (reading.dataOrigin === 'REAL_SENSOR') values.inputSources = {
+      storage_day: 'derived_completed_utc_days', temperature_c: reading.environment?.temperature?.source || 'unrecorded',
+      humidity_percent: reading.environment?.humidity?.source || 'unrecorded', weight_g: 'HX711_calibrated_raw_counts',
+      color_r: 'TCS34725_display_normalization', color_g: 'TCS34725_display_normalization', color_b: 'TCS34725_display_normalization',
+    };
     // Atomic $setOnInsert + unique index protects persistence across processes.
     // Concurrent requests may infer twice, but only the winning result is stored.
     try {

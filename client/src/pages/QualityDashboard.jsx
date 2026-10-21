@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuality } from '../components/QualityProvider';
-import { DataState, ImageComparison, MeasurementHistory, Metric, Panel, SampleSelector } from '../components/QualityUI';
+import { DataState, ImageComparison, Metric, Panel, SampleSelector } from '../components/QualityUI';
 import TrendChart from '../components/TrendChart';
 import Icon from '../components/Icon';
 import ImageClassifierPanel from '../components/ImageClassifierPanel';
 import RiskPredictionPanel from '../components/RiskPredictionPanel';
+import Module02SensorPanel, {Module02MeasurementHistory as MeasurementHistory} from '../components/Module02SensorPanel';
 import { formatTimestamp, weightChange } from '../data/demoQuality';
 
 const measurements = {
@@ -19,7 +20,7 @@ export default function QualityDashboard() {
   const { selected: sample, demoEnabled, setDemoEnabled, deviceStatus, status } = useQuality();
   const [metric, setMetric] = useState('weight');
   const current = sample?.records.at(-1), baseline = sample?.baselineRecord || sample?.records[0];
-  const change = sample ? weightChange(sample) : null;
+  const change = sample && Number.isFinite(current?.weight) ? weightChange(sample) : null;
   const measurement = measurements[metric];
   const historyLabel = demoEnabled ? 'HISTORICAL · DEMO DATA' : 'HISTORICAL RECORDS';
   return <>
@@ -32,6 +33,7 @@ export default function QualityDashboard() {
       {!sample && status !== 'loading' && <p>No sample is selected. <Link className="inline-link" to="/module-02/samples">Register a real sample in the sample library</Link>, or explore the explicitly labeled presentation demo. Registration alone does not create measurements.</p>}
     </section>
     <SampleSelector />
+    <Module02SensorPanel />
     <section className="module02-model-workspace" aria-label="Unified Model 01 and Model 02 outputs">
       <ImageClassifierPanel />
       <RiskPredictionPanel />
@@ -69,11 +71,11 @@ export default function QualityDashboard() {
         <Panel title="A closer look at color" eyebrow="RGB / BASELINE VS CURRENT" badge={demoEnabled ? 'DEMO DATA' : 'HISTORICAL'}>
           <div className="rgb-comparison">{[['Baseline', baseline], ['Current', current]].map(([label, record]) => <div key={label}>
             <div className="rgb-reference-label"><strong>{label}</strong><span>{record ? formatTimestamp(record.timestamp) : 'No measurement'}</span></div>
-            <div className="color-reference"><span className="rgb-swatch" style={record ? { background: `rgb(${record.rgb?.join(',')})` } : undefined} aria-label={record ? `${label} raw RGB display swatch` : `${label}: no color measurement`} />
+            <div className="color-reference"><span className="rgb-swatch" style={record?.rgb?.every(Number.isFinite) ? { background: `rgb(${record.rgb.join(',')})` } : undefined} aria-label={record?.rgb?.every(Number.isFinite) ? `${label} display RGB swatch` : `${label}: no color measurement`} />
               <div className="rgb-readings">{['R', 'G', 'B'].map((channel, index) => <div key={channel}><span className={`color-dot color-${index}`} /><span>{channel}</span><strong>{record?.rgb?.[index] ?? '—'}</strong></div>)}</div>
             </div>
           </div>)}</div>
-          <p className="panel-caption">Raw RGB display (0–255), uncalibrated. Swatches are visual references, not a validated color assessment.</p>
+          <p className="panel-caption">Display RGB (0–255), uncalibrated. Raw sensor counts are preserved separately in Weight and color evidence. Swatches are not a validated color assessment.</p>
           <div className="research-note"><Icon name="info" size={17} /><div><strong>CIELAB & ΔE awaiting calibrated data</strong><p>No color-difference result is inferred without calibration.</p></div></div>
         </Panel>
         <Panel title="Gas resistance" eyebrow="BME688 / ENVIRONMENTAL RESPONSE" badge={demoEnabled ? 'DEMO DATA' : 'HISTORICAL'}>
@@ -93,7 +95,7 @@ export default function QualityDashboard() {
       <div id="measurement-history"><MeasurementHistory sample={sample} /></div>
     </>}
     <Panel title="A connected sensing foundation" eyebrow="DEVICE INGESTION API" className="hardware-panel">
-      <div className="hardware-chips">{['ESP32-S3', 'ESP32-CAM', 'HX711 + 10 kg load cell', 'TCS34725 RGB', 'BME688', '16×2 I2C LCD'].map(item => <span key={item}><span className="connection-dot offline" />{item}</span>)}</div>
+      <div className="hardware-chips">{['ESP32 board - awaiting identification', 'HX711 + load cell', 'TCS34725 RGBC', 'Temperature / humidity - not available'].map(item => <span key={item}><span className="connection-dot offline" />{item}</span>)}</div>
       <p>Authenticated HTTP telemetry and image ingestion are available. Firmware and hardware controls are not implemented here. The dashboard reads stored records; recent telemetry does not prove a continuous live connection.</p>
     </Panel>
   </>;

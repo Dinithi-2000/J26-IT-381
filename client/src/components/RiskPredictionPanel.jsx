@@ -33,6 +33,7 @@ export function RiskPredictionView({state, sample, token = '', onToken = noop, o
           : <><dl className="risk-input-grid">{metrics.map(([label, content]) => <div key={label}><dt>{label}</dt><dd>{content}</dd></div>)}</dl>
             <p className={`risk-reading-status${condition.stale || condition.invalid ? ' risk-reading-warning' : ''}`} role="status">{condition.label}</p>
             <p>Sensor reading timestamp: <strong>{stamp(reading?.recordedAt)}</strong></p>
+            {reading && <p className="panel-caption">Temperature source: {reading.environment?.temperature?.source || 'Not recorded'}. Humidity source: {reading.environment?.humidity?.source || 'Not recorded'}. Input origin: {reading.dataOrigin || 'Legacy record - origin not recorded'}.</p>}
             {reading && <p className="panel-caption risk-reference">Reading ID: {reading._id}</p>}
           </>}
         {state.readingError && <p className="form-error" role="alert">{state.readingError}</p>}
@@ -63,7 +64,7 @@ export function RiskPredictionView({state, sample, token = '', onToken = noop, o
           <div><dt>Validation</dt><dd>Not scientifically validated</dd></div>
           <div><dt>Sensor reading ID</dt><dd className="risk-reference">{result.sensorReadingId}</dd></div></dl>
         {result.sensorReadingId !== reading?._id && <p className="research-note">This stored result refers to a different reading from the current sensor values above. It is historical, not a new assessment of the latest reading.</p>}
-        <details><summary>Inputs saved with this result</summary><dl className="risk-input-grid">{Object.entries(result.inputSnapshot).map(([name, number]) => <div key={name}><dt>{name}</dt><dd>{value(number)}</dd></div>)}</dl></details>
+        <details><summary>Inputs saved with this result</summary><dl className="risk-input-grid">{Object.entries(result.inputSnapshot).map(([name, number]) => <div key={name}><dt>{name}</dt><dd>{value(number)}<small className="risk-input-source">Source: {result.inputSources?.[name] || 'Not recorded in this historical result'}</small></dd></div>)}</dl></details>
       </> : <p>No Model 02 risk result loaded. Results appear only after an authenticated backend response; no risk category is inferred in the browser.</p>}
     </section>
     <section className="risk-history" aria-label="Synthetic risk prediction history" aria-busy={state.historyStatus === 'loading'}>

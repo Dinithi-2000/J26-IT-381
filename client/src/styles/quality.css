@@ -383,3 +383,9 @@
 @media (max-width: 400px) {
   .module02-model-workspace .risk-input-grid { grid-template-columns: minmax(0, 1fr); }
 }
+.module02-sensor-panel { margin-block: 1.5rem; }
+.module02-sensor-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+.module02-sensor-charts > div { min-width: 0; }
+.module02-color-preview { display: flex; align-items: center; gap: 1rem; }
+.risk-input-source { display: block; font-weight: 400; margin-top: .5rem; overflow-wrap: anywhere; }
+@media (max-width: 700px) { .module02-sensor-charts { grid-template-columns: minmax(0, 1fr); } }

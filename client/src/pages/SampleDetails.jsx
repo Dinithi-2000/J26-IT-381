@@ -1,7 +1,8 @@
 import { Link, useParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useQuality } from '../components/QualityProvider';
-import { DataState, ImageComparison, MeasurementHistory, Panel } from '../components/QualityUI';
+import { DataState, ImageComparison, Panel } from '../components/QualityUI';
+import {Module02MeasurementHistory as MeasurementHistory} from '../components/Module02SensorPanel';
 import { formatTimestamp } from '../data/demoQuality';
 
 export default function SampleDetails() {

@@ -1,3 +1,4 @@
+import {realSensorInput} from './realSensor.js';
 export function fail(status, code, message) { throw Object.assign(new Error(message), { status, code }); }
 export function text(value, name, max = 120) {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > max || /[\x00-\x1f<>]/.test(value)) fail(400, 'VALIDATION_ERROR', `${name} must be nonempty text, at most ${max} characters.`);
@@ -34,6 +35,7 @@ export function sampleInput(body, partial = false) {
   return result;
 }
 export function readingInput(body) {
+  if (body?.dataOrigin === 'REAL_SENSOR') return realSensorInput(body);
   const fields = ['sampleId','deviceId','measurementId','weightGrams','red','green','blue','temperatureC','relativeHumidityPercent','gasResistanceOhms','recordedAt','calibration'];
   object(body, fields);
   const result = { sampleId: id(body.sampleId), deviceId: id(body.deviceId,'deviceId'), measurementId: id(body.measurementId,'measurementId'), recordedAt: date(body.recordedAt,'recordedAt') };

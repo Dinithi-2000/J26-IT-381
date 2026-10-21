@@ -9,7 +9,7 @@ import {createServer} from 'vite';
 import react from '@vitejs/plugin-react';
 import {RISK_DISCLAIMER} from '../src/services/riskPredictionState.js';
 
-let vite, View, QualityProvider, ImagePanel, PredictionsPage, ImageResult, Dashboard;
+let vite, View, QualityProvider, ImagePanel, PredictionsPage, ImageResult, Dashboard, SensorView, SensorHistory;
 before(async () => {
   vite = await createServer({root: fileURLToPath(new URL('../', import.meta.url)), configFile: false,
     plugins: [react()], server: {middlewareMode: true, hmr: false}, appType: 'custom'});
@@ -19,6 +19,7 @@ before(async () => {
   PredictionsPage = (await vite.ssrLoadModule('/src/pages/QualityPredictions.jsx')).default;
   ImageResult = (await vite.ssrLoadModule('/src/components/ImageClassifierPanel.jsx')).ImageClassificationResult;
   Dashboard = (await vite.ssrLoadModule('/src/pages/QualityDashboard.jsx')).default;
+  ({Module02SensorView: SensorView, Module02MeasurementHistory: SensorHistory} = await vite.ssrLoadModule('/src/components/Module02SensorPanel.jsx'));
 });
 after(async () => {await vite?.close();});
 const sample = {id: 'CIN001', storageStartTimestamp: '2026-10-01T10:00:00Z'};
@@ -123,4 +124,38 @@ test('unified Module 02 overview retains both models and registration guidance w
   for (const text of ['Unified Model 01 and Model 02 outputs', 'Image condition prototype',
     'Storage Deterioration Risk', 'SYNTHETIC_DEMO', 'Explore presentation demo', 'No registered sample selected']) assert(html.includes(text), text);
   assert(html.includes('aria-pressed="false"')); assert(!html.includes('83.6%'));
+});
+
+
+test('real sensor cards preserve raw versus display RGB and do not turn missing environment into zero', () => {
+  const timestamp = '2026-10-06T10:00:00Z';
+  const sample = {id: 'TEST-CIN001', initialWeight: 100, storageStartDate: '2026-10-01', records: [
+    {timestamp: '2026-10-05T10:00:00Z', day: 4, weight: 100, temperature: null, humidity: null, rgb: [128,77,51]},
+    {timestamp, day: 5, weight: 98.2, temperature: null, humidity: null, rgb: [128,77,51],
+      dataOrigin: 'REAL_SENSOR', sensorStatus: {weight: 'online', color: 'online'}, rgbRaw: {red: 500,green: 300,blue: 200,clear: 1000},
+      colorSettings: {gain: 4,integrationTimeMs: 50.4}, calibration: {calibratedAt: timestamp,spreadGrams: .02},
+      environment: {temperature: {source: 'unavailable'}, humidity: {source: 'unavailable'}}}]};
+  const html = renderToStaticMarkup(React.createElement(SensorView, {sample, now: Date.parse(timestamp)+1000}));
+  for (const text of ['REAL_SENSOR RECORD', '98.2 g', '100 g', '-1.8 %', 'Raw clear counts', '1000', '128 / 77 / 51',
+    'No Reading', 'unavailable', 'Calibration recorded', 'Weight history', 'RGB change history', 'not a live connection']) assert(html.includes(text), text);
+  assert(!html.includes('NaN')); assert(!html.includes('0 ?C'));
+  const history = renderToStaticMarkup(React.createElement(QualityProvider, null, React.createElement(SensorHistory, {sample})));
+  assert(history.includes('No Reading')); assert(history.includes('500 / 300 / 200 / 1000'));
+});
+
+test('sensor offline, missing sample, and demo states remain explicit without real measurements', () => {
+  const empty = renderToStaticMarkup(React.createElement(SensorView, {sample: null}));
+  assert(empty.includes('Sensor Offline')); assert(empty.includes('No samples available')); assert(empty.includes('No Reading'));
+  const demo = renderToStaticMarkup(React.createElement(SensorView, {sample: {id: 'DEMO', records: []}, demo: true}));
+  assert(demo.includes('DEMO DATA')); assert(demo.includes('DEMO - no connected sensor')); assert(!demo.includes('REAL_SENSOR RECORD'));
+  const stale = renderToStaticMarkup(React.createElement(SensorView, {sample: {records: [{timestamp: '2026-01-01', weight: null, rgb: [null,null,null]}]}}));
+  assert(stale.includes('Sensor Offline')); assert(!stale.includes('background-color:rgb('));
+});
+
+test('risk view blocks two-sensor captures without environmental inputs and labels saved input sources', () => {
+  const html = render({reading: {...reading, temperatureC: null, relativeHumidityPercent: null}});
+  assert(html.includes('Temperature and humidity inputs required for risk prediction.'));
+  assert.match(html, /disabled="">Request risk prediction/);
+  const resultWithSources = {...result('Low'), inputSources: {storage_day: 'derived_completed_utc_days', weight_g: 'HX711_calibrated_raw_counts'}};
+  assert(render({result: resultWithSources}).includes('HX711_calibrated_raw_counts'));
 });

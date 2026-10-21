@@ -128,3 +128,12 @@ test('switching samples or revoking credentials cancels late authenticated histo
   const pending = workspace.loadHistory(); workspace.setToken(''); resolve(history([row('High')])); await pending;
   assert.equal(workspace.getSnapshot().history.length, 0); assert.equal(workspace.getSnapshot().hasToken, false); workspace.dispose();
 });
+
+
+test('nullable temperature and humidity cannot trigger a Model 02 prediction request', async () => {
+  const {workspace, calls} = fixture({getLatestReading: async () => ({data: {...reading(), temperatureC: null, relativeHumidityPercent: null}, deviceStatus: {}})});
+  workspace.selectSample(sample); await tick(); workspace.setToken('test-operator'); await workspace.predict();
+  assert.equal(calls.filter(call => call[0] === 'predict').length, 0);
+  assert.equal(workspace.getSnapshot().error, 'Temperature and humidity inputs required for risk prediction.');
+  workspace.dispose();
+});

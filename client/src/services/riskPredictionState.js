@@ -43,6 +43,7 @@ export function readingCondition(reading, deviceStatus, now = Date.now()) {
   const timestamp = typeof reading.recordedAt === 'string' ? Date.parse(reading.recordedAt) : NaN;
   if (!/^[a-f0-9]{24}$/i.test(reading._id || '') || !Number.isFinite(timestamp)) return {label: 'Invalid stored reading reference or timestamp', invalid: true};
   if (timestamp > now) return {label: 'Future reading timestamp — prediction unavailable', invalid: true};
+  if (reading.temperatureC == null || reading.relativeHumidityPercent == null) return {label: 'Temperature and humidity inputs required for risk prediction.', invalid: true};
   const fields = [['temperatureC', -40, 85], ['relativeHumidityPercent', 0, 100], ['weightGrams', Number.MIN_VALUE, 10000], ['red', 0, 255], ['green', 0, 255], ['blue', 0, 255]];
   if (fields.some(([name, min, max]) => typeof reading[name] !== 'number' || !Number.isFinite(reading[name]) || reading[name] < min || reading[name] > max)) {
     return {label: 'Stored sensor values are incomplete or outside Model 02 input limits', invalid: true};

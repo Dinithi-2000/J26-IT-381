@@ -25,7 +25,7 @@ export function createQualityService({ baseUrl = '/api', fetcher = globalThis.fe
         request(`${path(sample.id)}/readings?limit=200`,options),request(`/module-02/readings/latest?sampleId=${encodeURIComponent(sample.id)}`,options),
         request(`${path(sample.id)}/images?limit=200`,options),request(`${path(sample.id)}/predictions?limit=200`,options),request(`${path(sample.id)}/readings?limit=1&order=asc`,options),
       ]);
-      const normalizeReading = row => ({...row,id:row._id,timestamp:row.recordedAt,day:Math.floor((Date.parse(row.recordedAt)-Date.parse(sample.storageStartDate))/86400000),weight:row.weightGrams,temperature:row.temperatureC,humidity:row.relativeHumidityPercent,rgb:[row.red,row.green,row.blue]});
+      const normalizeReading = row => ({...row,id:row._id,timestamp:row.recordedAt,day:Math.floor((Date.parse(row.recordedAt)-Date.parse(sample.storageStartTimestamp || sample.storageStartDate))/86400000),weight:row.weightGrams,temperature:row.temperatureC,humidity:row.relativeHumidityPercent,rgb:[row.red,row.green,row.blue]});
       return {...sample,baselineRecord:baseline.data[0] ? normalizeReading(baseline.data[0]) : null,detailsLoaded:true,historyTotal:history.pagination.total,imageTotal:images.pagination.total,predictionTotal:predictions.pagination.total,
         records:history.data.reverse().map(normalizeReading),
         images:images.data.map(row=>({...row,id:row._id,src:row.url,timestamp:row.recordedAt,kind:'photograph'})),predictions:predictions.data,deviceStatus:latest.deviceStatus};

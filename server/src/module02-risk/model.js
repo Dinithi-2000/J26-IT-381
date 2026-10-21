@@ -16,6 +16,8 @@ const schema = new Schema({
   sampleId: {type: String, required: true},
   sensorReadingId: {type: Schema.Types.ObjectId, ref: 'Module02SensorReading', required: true},
   inputSnapshot: {type: inputSchema, required: true},
+  inputSources: {storage_day: String, temperature_c: String, humidity_percent: String,
+    weight_g: String, color_r: String, color_g: String, color_b: String},
   predictedRisk: {type: String, enum: Object.keys(CATEGORY_MAP), required: true},
   riskCategory: {type: String, enum: Object.values(CATEGORY_MAP), required: true},
   modelVersion: {type: String, required: true},
