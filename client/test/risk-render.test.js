@@ -8,8 +8,9 @@ import {MemoryRouter} from 'react-router-dom';
 import {createServer} from 'vite';
 import react from '@vitejs/plugin-react';
 import {RISK_DISCLAIMER} from '../src/services/riskPredictionState.js';
+import {hardwareStatus} from '../src/services/module02Telemetry.js';
 
-let vite, View, QualityProvider, ImagePanel, PredictionsPage, ImageResult, Dashboard, SensorView, SensorHistory, PhotoPreview;
+let vite, View, QualityProvider, ImagePanel, PredictionsPage, ImageResult, Dashboard, SensorView, SensorHistory, PhotoPreview, HardwareView;
 before(async () => {
   vite = await createServer({root: fileURLToPath(new URL('../', import.meta.url)), configFile: false,
     plugins: [react()], server: {middlewareMode: true, hmr: false}, appType: 'custom'});
@@ -21,8 +22,23 @@ before(async () => {
   PhotoPreview = (await vite.ssrLoadModule('/src/components/ImageClassifierPanel.jsx')).LocalPhotoPreview;
   Dashboard = (await vite.ssrLoadModule('/src/pages/QualityDashboard.jsx')).default;
   ({Module02SensorView: SensorView, Module02MeasurementHistory: SensorHistory} = await vite.ssrLoadModule('/src/components/Module02SensorPanel.jsx'));
+  HardwareView = (await vite.ssrLoadModule('/src/components/Module02HardwareStatus.jsx')).default;
 });
 after(async () => {await vite?.close();});
+
+test('Module 02 hardware view shows actual weight and status labels with honest checking/illustrative states', () => {
+  const now=Date.parse('2026-10-21T10:00:00Z');
+  const reading={sampleId:'TEST-CIN001',deviceId:'ESP32S3-WEIGHT-01',dataOrigin:'REAL_SENSOR',
+    recordedAt:'2026-10-21T09:59:59Z',createdAt:'2026-10-21T09:59:59Z',weightGrams:42.75,sensorStatus:{weight:'online',color:'offline'}};
+  const state={sampleId:'TEST-CIN001',phase:'ready',reading,now,deviceStatus:{offlineAfterSeconds:60}};
+  const renderHardware=changes=>renderToStaticMarkup(React.createElement(HardwareView,{sampleId:state.sampleId,hardware:hardwareStatus({...state,...changes})}));
+  const html=renderHardware({});
+  for(const text of ['ESP32-S3 Connected','HX711 Load Cell Online','RGB Sensor Offline','42.75 g','Measured at','Freshness: 60s'])assert(html.includes(text),text);
+  const checking=renderHardware({phase:'checking'});assert(checking.includes('ESP32-S3 Checking'));assert(checking.includes('aria-busy="true"'));
+  const illustrative=renderHardware({reading:{...reading,dataOrigin:'DEMO_DATA'}});
+  assert(illustrative.includes('ESP32-S3 Disconnected'));assert(illustrative.includes('No real weight received'));assert(!illustrative.includes('42.75 g'));
+  assert(illustrative.includes('Illustrative stored readings do not establish hardware connectivity'));
+});
 const sample = {id: 'CIN001', storageStartTimestamp: '2026-10-01T10:00:00Z'};
 const reading = {_id: '000000000000000000000001', recordedAt: '2026-10-06T10:00:00Z', temperatureC: 30.5,
   relativeHumidityPercent: 76, weightGrams: 98.2, red: 145, green: 90, blue: 50};

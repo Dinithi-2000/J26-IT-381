@@ -17,7 +17,7 @@ const measurements = {
   color: { label: 'RGB color', series: ['Red', 'Green', 'Blue'].map((name, index) => ({ name, color: ['#AD6652', '#426B53', '#527F9A'][index], read: record => record.rgb[index] })) },
 };
 export default function QualityDashboard() {
-  const { selected: sample, samples, demoEnabled, deviceStatus, status, refresh } = useQuality();
+  const { selected: sample, samples, demoEnabled, deviceStatus, hardware, status, refresh } = useQuality();
   const [metric, setMetric] = useState('weight');
   const current = sample?.records.at(-1), baseline = sample?.baselineRecord || sample?.records[0];
   const change = sample && Number.isFinite(current?.weight) ? weightChange(sample) : null;
@@ -97,8 +97,8 @@ export default function QualityDashboard() {
       <div id="measurement-history"><MeasurementHistory sample={sample} /></div>
     </>}
     <Panel title="A connected sensing foundation" eyebrow="DEVICE INGESTION API" className="hardware-panel">
-      <div className="hardware-chips">{['ESP32 board - awaiting identification', 'HX711 + load cell', 'TCS34725 RGBC', 'Temperature / humidity - not available'].map(item => <span key={item}><span className="connection-dot offline" />{item}</span>)}</div>
-      <p>Authenticated HTTP telemetry and image ingestion are available. Firmware and hardware controls are not implemented here. The dashboard reads stored records; recent telemetry does not prove a continuous live connection.</p>
+      <div className="hardware-chips">{[`ESP32-S3 ${hardware.esp32}`, `HX711 Load Cell ${hardware.hx711}`, `RGB Sensor ${hardware.rgb}`, 'Temperature / humidity — not available'].map(item => <span key={item}>{item}</span>)}</div>
+      <p>The hardware panel checks the selected record every five seconds. Only fresh REAL_SENSOR telemetry from ESP32S3-WEIGHT-01 can establish a recent device connection; illustrative data and successful API requests cannot.</p>
     </Panel>
   </>;
 }

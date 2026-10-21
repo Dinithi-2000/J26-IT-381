@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { QualityProvider, useQuality } from './QualityProvider';
 import Icon from './Icon';
+import Module02HardwareStatus from './Module02HardwareStatus';
 
 const links = [
   ['/module-02', 'Quality overview', 'overview'], ['/module-02/samples', 'Cinnamon records', 'sample'],
   ['/module-02/images', 'Image analysis', 'image'], ['/module-02/predictions', 'AI predictions', 'sparkles'],
 ];
 function QualityShell() {
-  const { demoEnabled, status, samples, deviceStatus } = useQuality();
+  const { demoEnabled, status, samples, hardware, selected } = useQuality();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 1100px)').matches);
@@ -62,9 +63,7 @@ function QualityShell() {
           <Icon name={icon} size={20} /><span className="sidebar-copy">{label}</span>{index === 1 && <span className="sidebar-count sidebar-copy">{samples.length}</span>}
         </NavLink>)}
       </nav>
-      <div className="sidebar-device-panel"><div className="sidebar-device-heading"><Icon name="offline" size={18} /><strong className="sidebar-copy">Telemetry status</strong></div>
-        <div className="sidebar-copy"><p>{deviceStatus}</p><div className="device-row"><span className="connection-dot offline" />ESP32-S3<span>Reading-age status</span></div><div className="device-row"><span className="connection-dot offline" />ESP32-CAM<span>Stored uploads</span></div></div>
-      </div>
+      <Module02HardwareStatus hardware={hardware} sampleId={selected?.id} />
       <div className="sidebar-research-note sidebar-copy"><span className="sidebar-note-icon"><Icon name="shield" size={24} /></span><strong>Evidence before inference.</strong><p>Quality indicators inform research. Validated models must come before predictions.</p><Link to="/module-02/predictions">Model availability <Icon name="external" size={14} /></Link></div>
       <Link className="sidebar-back" to="/"><Icon name="arrow" size={17} /><span className="sidebar-copy">Back to CinnaSense</span></Link>
     </aside>

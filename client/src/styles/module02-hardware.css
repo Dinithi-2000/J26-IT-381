@@ -1,0 +1,12 @@
+.module02-hardware-panel .connection-dot.module02-connected { background: #a8dca3; }
+.module02-hardware-panel .device-row { display: grid; grid-template-columns: 6px minmax(0, 1fr) auto; gap: 6px; align-items: start; }
+.module02-hardware-panel .module02-device-name { min-width: 0; overflow-wrap: anywhere; }
+.module02-hardware-panel .module02-device-status { margin-left: 0; color: #edf3e4; }
+.module02-hardware-panel .module02-hardware-record { margin: 8px 0 14px; overflow-wrap: anywhere; }
+.module02-hardware-panel .module02-hardware-reading { border-top: 1px solid #ffffff26; margin: 16px 0 0; padding-top: 12px; font-size: var(--type-caption); }
+.module02-hardware-panel .module02-hardware-reading > div + div { margin-top: 9px; }
+.module02-hardware-panel dt { color: #bfceb8; }
+.module02-hardware-panel dd { color: #fff; margin: 3px 0 0; overflow-wrap: anywhere; }
+.module02-hardware-panel .module02-hardware-message,
+.module02-hardware-panel .module02-hardware-caption { margin: 12px 0 0; line-height: 1.55; }
+.module02-hardware-panel .module02-hardware-caption { color: #c2d1bb; }

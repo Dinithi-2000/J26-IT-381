@@ -6,11 +6,11 @@ import {formatTimestamp} from '../data/demoQuality';
 const value = (number, unit = '') => Number.isFinite(number) ? `${Number(number.toFixed(2))}${unit}` : 'Not available';
 const stamp = timestamp => timestamp && Number.isFinite(Date.parse(timestamp)) ? formatTimestamp(timestamp) : 'No measurement';
 
-export function Module02SensorView({sample, demo = false, now = Date.now()}) {
+export function Module02SensorView({sample, demo = false, now = Date.now(), hardware}) {
   const records = sample?.records || [], current = records.at(-1);
   const previous = records.slice(0, -1).findLast(row => Number.isFinite(row.weight));
   const fresh = current && Date.parse(current.timestamp) <= now && now - Date.parse(current.timestamp) <= (sample?.deviceStatus?.offlineAfterSeconds || 300) * 1000;
-  const status = sensor => demo ? 'DEMO - no connected sensor'
+  const status = sensor => hardware ? sensor === 'weight' ? `HX711 Load Cell ${hardware.hx711}` : `RGB Sensor ${hardware.rgb}` : demo ? 'DEMO - no connected sensor'
     : !current || !fresh || current.sensorStatus?.[sensor] === 'offline' ? 'Sensor Offline'
       : current.dataOrigin === 'REAL_SENSOR' ? 'Recent device record - not a live connection' : 'Historical record - sensor status not recorded';
   const real = !demo && current?.dataOrigin === 'REAL_SENSOR';
@@ -46,8 +46,8 @@ export function Module02SensorView({sample, demo = false, now = Date.now()}) {
 }
 
 export default function Module02SensorPanel() {
-  const {selected, demoEnabled} = useQuality();
-  return <Module02SensorView sample={selected} demo={demoEnabled} />;
+  const {selected, demoEnabled, hardware} = useQuality();
+  return <Module02SensorView sample={selected} demo={demoEnabled} hardware={hardware} />;
 }
 
 export function Module02MeasurementHistory({sample}) {
