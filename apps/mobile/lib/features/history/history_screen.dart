@@ -191,48 +191,53 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: AppTheme.borderColor),
                         ),
-                        child: ListTile(
-                          onTap: () => context.go('/result/${sample.id}'),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 4,
-                          ),
-                          leading: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
+                        child: Material(
+                          type: MaterialType.transparency,
+                          borderRadius: BorderRadius.circular(12),
+                          clipBehavior: Clip.antiAlias,
+                          child: ListTile(
+                            onTap: () => context.go('/result/${sample.id}'),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 4,
                             ),
-                            decoration: BoxDecoration(
-                              color: gradeColor.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              grade,
-                              style: TextStyle(
-                                color: gradeColor,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
+                            leading: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: gradeColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                grade,
+                                style: TextStyle(
+                                  color: gradeColor,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
                               ),
                             ),
-                          ),
-                          title: Text(
-                            sample.sampleId,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
+                            title: Text(
+                              sample.sampleId,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
                             ),
-                          ),
-                          subtitle: Text(
-                            'Ø ${(sample.diameterMm ?? sample.crossSectionWidthMm)?.toStringAsFixed(2) ?? '?'} mm • ${sample.captureTimestamp.hour.toString().padLeft(2, '0')}:${sample.captureTimestamp.minute.toString().padLeft(2, '0')}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppTheme.secondaryText,
+                            subtitle: Text(
+                              'Ø ${(sample.diameterMm ?? sample.crossSectionWidthMm)?.toStringAsFixed(2) ?? '?'} mm • ${sample.captureTimestamp.hour.toString().padLeft(2, '0')}:${sample.captureTimestamp.minute.toString().padLeft(2, '0')}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.secondaryText,
+                              ),
                             ),
-                          ),
-                          trailing: const Icon(
-                            Icons.chevron_right,
-                            size: 18,
-                            color: AppTheme.tertiaryText,
+                            trailing: const Icon(
+                              Icons.chevron_right,
+                              size: 18,
+                              color: AppTheme.tertiaryText,
+                            ),
                           ),
                         ),
                       );
