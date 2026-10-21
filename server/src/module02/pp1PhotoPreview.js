@@ -3,8 +3,8 @@ import {operatorAuth} from './auth.js';
 import {verifyPp1Connection} from './pp1Dataset.js';
 import {imageService, ImageServiceError, validateResult} from '../module02-image/service.js';
 
-// Mounted ONLY by the loopback PP1 runner. No model, image or sample is saved.
-export function createPp1PhotoPreviewRouter({service = imageService, verifyTarget = verifyPp1Connection} = {}) {
+// Preview is independent of database storage. No image or sample is saved.
+export function createPhotoPreviewRouter({service = imageService, verifyTarget = () => {}} = {}) {
   const router = Router();
   router.get('/status', async (_req, res) => {
     verifyTarget();
@@ -26,4 +26,9 @@ export function createPp1PhotoPreviewRouter({service = imageService, verifyTarge
     res.status(status).json({error: {code: status === 401 ? 'UNAUTHORIZED' : 'PHOTO_PREVIEW_UNAVAILABLE', message: status === 401 ? 'A valid operator token is required.' : 'Photo preview is unavailable.'}});
   });
   return router;
+}
+
+// Retain the original local runner's database guard for historical tooling.
+export function createPp1PhotoPreviewRouter({service = imageService, verifyTarget = verifyPp1Connection} = {}) {
+  return createPhotoPreviewRouter({service, verifyTarget});
 }

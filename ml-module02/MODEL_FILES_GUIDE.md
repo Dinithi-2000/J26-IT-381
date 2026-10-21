@@ -64,11 +64,11 @@ Model 02 `.venv`, reinstall dependencies, or retrain for the presentation.
   `X-Quality-Service-Token` authentication.
 - Existing saved-image API: `POST /api/module-02/image-classification/images?sampleId=...`,
   using operator authentication and a registered real sample.
-- Approved local PP1 preview: `POST http://127.0.0.1:5002/api/module-02/image-classification/preview`,
+- Approved photo preview: `POST http://127.0.0.1:5000/api/module-02/image-classification/preview`,
   operator Bearer authentication and a binary JPEG/PNG. This forwards to the
   existing Model 01 service, returns the actual class/score/time, and saves
   neither the image nor its result. It does not associate the photograph with
-  illustrative sensor samples. This new route exists only in the local PP1 runner.
+  illustrative sensor samples. This route is available through the main Node API.
 
 ## Model 02 — Storage Deterioration Risk (Random Forest)
 
@@ -145,46 +145,32 @@ the existing price endpoints; do not replace `app/main.py` or its environment.
 - History: `GET /api/module-02/samples/:sampleId/risk-predictions` with operator
   authentication. Stored categories map Low→low, Medium→moderate, High→high.
 
-## Start the saved-record PP1 dashboard
+## Start the Atlas-backed dashboard
 
-The shared Atlas database was empty. Do not seed it or hide the empty response.
-The presentation uses the existing **local** `cinnasense_module02_pp1_dev`
-database with three `DEMO_DATA` samples and eighteen observations. These are
-actual saved database records containing illustrative values, not real sensor
-measurements. Keep the separate in-memory Demo switch off.
+All saved Module 02 records now use **CinnaSenseCluster / test** through the main
+Node backend on port 5000. The existing 3 illustrative samples, 18 observations
+and saved Model 02 Low result were transferred with their original IDs and dates.
+They remain demonstration data, not physical measurements. Keep the in-memory
+Demo switch off to see these database records.
 
-Start local MongoDB in its own terminal if port 27018 is not already running:
-
-```powershell
-cd 'C:\Github Project\J26-IT-381'
-$runtimeDirectory = Get-Content state/local-runtime/phase45-verification-path.txt
-$mongoDirectory = Join-Path $runtimeDirectory 'mongo-portable'
-& (Join-Path $mongoDirectory 'mongod.exe') --bind_ip 127.0.0.1 --port 27018 --dbpath (Join-Path $mongoDirectory 'data') --logpath (Join-Path $mongoDirectory 'mongod.log') --logappend
-```
-
-Start the local presentation backend in another terminal:
+No local presentation database or port 5002 backend is needed. Start only stopped
+services, in separate terminals:
 
 ```powershell
 cd 'C:\Github Project\J26-IT-381'
-node server/tools/module02-pp1-seed.mjs
-node server/tools/module02-pp1-server.mjs
+npm run start --workspace server
 ```
-
-The idempotent seed refuses production/unknown databases. The local server uses
-existing private server-side credentials, without changing shared `.env` files.
-
-Start the presentation frontend in another terminal:
 
 ```powershell
 cd 'C:\Github Project\J26-IT-381'
-$env:VITE_MODULE02_API_URL='http://127.0.0.1:5002/api'
-npm run dev --workspace client -- --host 127.0.0.1 --port 5180 --strictPort
+npm run dev --workspace client
 ```
 
-Open **http://127.0.0.1:5180/module-02**. Do not start duplicate instances when
-the services are already running. The shared backend on 5000 and other modules
-keep their existing settings. All operator tokens are entered only into password
-fields; never place Python service tokens in React or `VITE_` variables.
+Open **http://localhost:5173/module-02** (use Vite's printed port if occupied).
+The existing port 5180 dashboard also uses the same main API. Module 02 clients
+use `/api`; the old `VITE_MODULE02_API_URL` override is no longer used. Configure
+Atlas privately in `server/.env`; never put credentials in React or Vite variables.
+Start Python services with the unchanged commands above when needed.
 
 ### Demonstrate both outputs
 
@@ -196,15 +182,15 @@ fields; never place Python service tokens in React or `VITE_` variables.
    uncalibrated score and analysis timestamp. This photograph is unlinked to
    the illustrative sensor dataset; there is no saved preview image history.
 3. In Model 02, enter the operator token and choose Load risk history or Request
-   risk prediction. Show the actual Python response and its saved local history,
+   risk prediction. Show the actual Python response and its saved Atlas history,
    retaining the synthetic-training and unverified-horizon disclosures.
 4. Select `CIN-PP1-003` to show the missing temperature/humidity message and
    disabled risk prediction. No missing measurements are invented.
 
 For the longer presentation walkthrough and database safety details, see
 `server/MODULE02_PP1_PRESENTATION.md`. Historical illustrative readings are
-accepted only by the guarded local PP1 server; real-sensor freshness rules in
-the existing backend remain unchanged. Hardware is not required or claimed live.
+accepted when both stored sample and reading are labeled DEMO_DATA; real-sensor
+freshness rules remain unchanged. Hardware is not required or claimed live.
 
 ## Test commands (no retraining)
 
@@ -224,11 +210,8 @@ npm run build --workspace client
 No rename, move, retraining, model-weight change, commit or push is part of this
 guide or the approved local photo-preview feature.
 
-Verified for this update: 71 tests passed (30 frontend, 13 preview/saved-image
-backend, 4 PP1 dataset/API, 10 Model 01 Python, 14 Model 02/price Python), and the
-frontend build passed. A browser upload of the existing real test photograph
-returned `good_quality` with an 83.6% uncalibrated score alongside saved Low Risk
-history. The local database retained 3 samples, 18 readings, 1 risk result and
-zero saved image classifications. All active artifact hashes and 503 archival
-file hashes were unchanged. These checks do not establish scientific accuracy
-or physical sensor connectivity.
+Atlas cutover verification: 3 samples, 18 readings, 1 saved synthetic risk result,
+and 0 stored image classifications. A separate real-photograph preview returned
+`good_quality` with an 83.6% uncalibrated score matching the previous baseline.
+Photo preview is intentionally not saved. See the backend presentation guide for
+backup locations, verification commands and current results.

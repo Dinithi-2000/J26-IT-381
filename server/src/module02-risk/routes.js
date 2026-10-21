@@ -61,7 +61,10 @@ export function createRiskRouter({Sample = DefaultSample, SensorReading = Defaul
     const existing = await RiskPrediction.findOne(key);
     if (existing) return res.json(existing);
     if (allowIllustrativeHistory) verifyPp1Connection();
-    const inputSnapshot = storedReadingInput(sample, reading, now(), {allowIllustrativeHistory});
+    // Persisted demonstration records can be replayed as historical simulations.
+    // Browser payloads cannot supply these fields; real measurements stay strict.
+    const illustrative = sample.dataOrigin === 'DEMO_DATA' && reading.dataOrigin === 'DEMO_DATA';
+    const inputSnapshot = storedReadingInput(sample, reading, now(), {allowIllustrativeHistory: allowIllustrativeHistory || illustrative});
     const output = validateRiskResponse(await predict(inputSnapshot), now());
     const savedAt = new Date(now());
     const values = {...key, inputSnapshot, predictedRisk: output.predicted_risk,

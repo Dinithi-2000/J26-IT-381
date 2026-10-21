@@ -1,5 +1,5 @@
 const base='/api/module-02/image-classification';
-const presentationBase = `${(import.meta.env?.VITE_MODULE02_API_URL || '/api').replace(/\/$/, '')}/module-02/image-classification`;
+const presentationBase = base;
 export async function imageRequest(path,{signal,method='GET',file,token,baseUrl=base}={}) {
  let response;
  try{response=await fetch(`${baseUrl}${path}`,{signal,method,headers:{...(file?{'Content-Type':file.type}:{}),...(token?{Authorization:`Bearer ${token}`}:{})},body:file});}

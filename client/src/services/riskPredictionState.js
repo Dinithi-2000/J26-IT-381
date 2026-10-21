@@ -49,7 +49,7 @@ export function readingCondition(reading, deviceStatus, now = Date.now()) {
     return {label: 'Stored sensor values are incomplete or outside Model 02 input limits', invalid: true};
   }
   const ageLimit = deviceStatus?.offlineAfterSeconds || 300;
-  if (reading.dataOrigin === 'DEMO_DATA') return {label: 'Illustrative stored reading - historical prediction requests require the dedicated local presentation API.', invalid: false};
+  if (reading.dataOrigin === 'DEMO_DATA') return {label: 'Illustrative stored reading - historical simulation using saved demonstration data, not live sensor measurements.', invalid: false};
   return now - timestamp > ageLimit * 1000
     ? {label: 'Stale telemetry — new predictions may be rejected; saved results can be retrieved', stale: true, invalid: false}
     : {label: 'Recent stored telemetry — not a live sensor stream', invalid: false};

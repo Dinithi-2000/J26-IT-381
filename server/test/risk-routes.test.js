@@ -98,6 +98,29 @@ test('valid stored readings persist exact inputs and all three explicitly mapped
   assert.equal(store.rows.length, 3);
 });
 
+test('stored illustrative history can be simulated without relaxing real-reading freshness', async t => {
+  const {state, call} = await fixture(t);
+  state.sample.dataOrigin = 'DEMO_DATA';
+  state.reading.dataOrigin = 'DEMO_DATA';
+  state.clock += 86400000;
+  const result = await call();
+  assert.equal(result.status, 201);
+  assert.equal(result.body.dataOrigin, 'SYNTHETIC_DEMO');
+  assert.equal(result.body.inputSources.temperature_c, 'DEMO_DATA illustrative record');
+  assert.equal(result.body.predictionHorizonDays, null);
+});
+
+test('mixed demo and real provenance does not bypass stale-reading protection', async t => {
+  const {state, call} = await fixture(t);
+  state.sample.dataOrigin = 'DEMO_DATA';
+  state.reading.dataOrigin = 'REAL_SENSOR';
+  state.clock += 86400000;
+  const result = await call();
+  assert.equal(result.status, 409);
+  assert.equal(result.body.error.code, 'STALE_READING');
+  assert.equal(state.calls.length, 0);
+});
+
 test('same request retries and concurrent submissions persist one immutable result', async t => {
   const {state, store, call} = await fixture(t);
   const responses = await Promise.all(Array.from({length: 8}, () => call()));

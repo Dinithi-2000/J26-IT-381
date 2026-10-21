@@ -7,6 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {Sample} from '../module02/models.js';
 import {ImageConditionAnalysis} from './model.js';
 import {imageService,ImageServiceError} from './service.js';
+import {createPhotoPreviewRouter} from '../module02/pp1PhotoPreview.js';
 const fail=(status,code,message)=>{throw Object.assign(new Error(message),{status,code});};
 const id=value=>{if(typeof value!=='string'||!/^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$/.test(value))fail(400,'VALIDATION_ERROR','Use a sample/device ID with 2-64 letters, digits, underscores or hyphens.');return value;};
 const equal=(a,b)=>timingSafeEqual(createHash('sha256').update(a).digest(),createHash('sha256').update(b).digest());
@@ -30,9 +31,7 @@ export function authorize(req,_res,next) {
 const output=row=>{const value=row.toObject();delete value.filename;return {...value,imageUrl:`/api/module-02/image-classification/${row._id}/file`};};
 export function createImageRouter({Model=ImageConditionAnalysis,databaseReady=()=>mongoose.connection.readyState===1,service=imageService,SampleModel=Sample}={}) {
  const router=Router();
- router.get('/status',async(_req,res)=>{
-  try{res.json(await service('/health'));}catch(error){res.status(error.status||503).json({error:{code:error.code||'IMAGE_SERVICE_UNAVAILABLE',message:error.message}});}
- });
+ router.use(createPhotoPreviewRouter({service}));
  const operatorOnly=(req,res,next)=>authorize(req,res,()=>{if(req.deviceId)fail(403,'FORBIDDEN','Use an operator token for camera controls.');next();});
  router.get('/camera/status',operatorOnly,async(_req,res)=>res.json(await service('/camera/status')));
  router.use((_req,_res,next)=>{if(!databaseReady())fail(503,'DATABASE_UNAVAILABLE','MongoDB is required to store and retrieve sample images.');next();});

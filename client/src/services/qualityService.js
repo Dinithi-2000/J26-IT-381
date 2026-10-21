@@ -41,4 +41,5 @@ export function createQualityService({ baseUrl = '/api', fetcher = globalThis.fe
     getRiskPredictions: (id,token,page=1,options={}) => request(`${path(id)}/risk-predictions?page=${page}&limit=12`,{...options,token}),
   };
 }
-export const qualityService = createQualityService({baseUrl: import.meta.env?.VITE_MODULE02_API_URL || '/api'});
+// All stored Module 02 data uses the main Atlas-backed Node API.
+export const qualityService = createQualityService({baseUrl: '/api'});
