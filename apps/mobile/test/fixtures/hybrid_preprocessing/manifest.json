@@ -1,0 +1,132 @@
+{
+  "pillow_version": "13.0.0",
+  "preprocessing": "exif_transpose -> RGB -> ImageOps.pad BILINEAR white 224x224",
+  "cases": [
+    {
+      "input": "wide_downsample.png",
+      "expected": "wide_downsample_expected.png",
+      "max_channel_error": 0,
+      "note": "Exact PIL RGB bytes"
+    },
+    {
+      "input": "tall_downsample.png",
+      "expected": "tall_downsample_expected.png",
+      "max_channel_error": 0,
+      "note": "Exact PIL RGB bytes"
+    },
+    {
+      "input": "small_upsample.png",
+      "expected": "small_upsample_expected.png",
+      "max_channel_error": 0,
+      "note": "Exact PIL RGB bytes"
+    },
+    {
+      "input": "alpha_discard.png",
+      "expected": "alpha_discard_expected.png",
+      "max_channel_error": 0,
+      "note": "Exact PIL RGB bytes"
+    },
+    {
+      "input": "square.png",
+      "expected": "square_expected.png",
+      "max_channel_error": 0,
+      "note": "Exact PIL RGB bytes"
+    },
+    {
+      "input": "orientation_1.jpg",
+      "expected": "orientation_1_expected.png",
+      "max_channel_error": 3,
+      "note": "JPEG decoder rounding tolerance; all orientations tested"
+    },
+    {
+      "input": "orientation_png_1.png",
+      "expected": "orientation_png_1_expected.png",
+      "max_channel_error": 0,
+      "note": "Exact PIL RGB bytes"
+    },
+    {
+      "input": "orientation_2.jpg",
+      "expected": "orientation_2_expected.png",
+      "max_channel_error": 3,
+      "note": "JPEG decoder rounding tolerance; all orientations tested"
+    },
+    {
+      "input": "orientation_png_2.png",
+      "expected": "orientation_png_2_expected.png",
+      "max_channel_error": 0,
+      "note": "Exact PIL RGB bytes"
+    },
+    {
+      "input": "orientation_3.jpg",
+      "expected": "orientation_3_expected.png",
+      "max_channel_error": 3,
+      "note": "JPEG decoder rounding tolerance; all orientations tested"
+    },
+    {
+      "input": "orientation_png_3.png",
+      "expected": "orientation_png_3_expected.png",
+      "max_channel_error": 0,
+      "note": "Exact PIL RGB bytes"
+    },
+    {
+      "input": "orientation_4.jpg",
+      "expected": "orientation_4_expected.png",
+      "max_channel_error": 3,
+      "note": "JPEG decoder rounding tolerance; all orientations tested"
+    },
+    {
+      "input": "orientation_png_4.png",
+      "expected": "orientation_png_4_expected.png",
+      "max_channel_error": 0,
+      "note": "Exact PIL RGB bytes"
+    },
+    {
+      "input": "orientation_5.jpg",
+      "expected": "orientation_5_expected.png",
+      "max_channel_error": 3,
+      "note": "JPEG decoder rounding tolerance; all orientations tested"
+    },
+    {
+      "input": "orientation_png_5.png",
+      "expected": "orientation_png_5_expected.png",
+      "max_channel_error": 0,
+      "note": "Exact PIL RGB bytes"
+    },
+    {
+      "input": "orientation_6.jpg",
+      "expected": "orientation_6_expected.png",
+      "max_channel_error": 3,
+      "note": "JPEG decoder rounding tolerance; all orientations tested"
+    },
+    {
+      "input": "orientation_png_6.png",
+      "expected": "orientation_png_6_expected.png",
+      "max_channel_error": 0,
+      "note": "Exact PIL RGB bytes"
+    },
+    {
+      "input": "orientation_7.jpg",
+      "expected": "orientation_7_expected.png",
+      "max_channel_error": 3,
+      "note": "JPEG decoder rounding tolerance; all orientations tested"
+    },
+    {
+      "input": "orientation_png_7.png",
+      "expected": "orientation_png_7_expected.png",
+      "max_channel_error": 0,
+      "note": "Exact PIL RGB bytes"
+    },
+    {
+      "input": "orientation_8.jpg",
+      "expected": "orientation_8_expected.png",
+      "max_channel_error": 3,
+      "note": "JPEG decoder rounding tolerance; all orientations tested"
+    },
+    {
+      "input": "orientation_png_8.png",
+      "expected": "orientation_png_8_expected.png",
+      "max_channel_error": 0,
+      "note": "Exact PIL RGB bytes"
+    }
+  ]
+}

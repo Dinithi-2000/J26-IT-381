@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>QuillGrade — AI Optical Caliper & Cinnamon Grading</title>
+  <meta name="description" content="QuillGrade: AI-powered cinnamon quality grading platform compliant with SLS 81 standard. Optical caliper measurement and classification." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="phone-frame" id="phoneFrame">
+    <!-- ====== SCREEN 1: HOME DASHBOARD ====== -->
+    <div class="screen active" id="screenHome">
+      <!-- Top App Bar -->
+      <header class="app-bar">
+        <div class="app-bar-left">
+          <div class="brand-logo">
+            <svg class="leaf-icon" width="26" height="26" viewBox="0 0 24 24" fill="none">
+              <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20c4 0 8.5-3.5 9.5-11.5C18 5 17 3 17 3s-1 .5-1 2.5c0 0 2-1 3.5-1s2.5.5 2.5 2c0 2.5-3.5 4-5 2z" fill="#14532D"/>
+              <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20c4 0 8.5-3.5 9.5-11.5" stroke="#0F5132" stroke-width="0.5" fill="none" opacity="0.3"/>
+            </svg>
+            <span class="brand-name">QuillGrade</span>
+          </div>
+        </div>
+        <div class="app-bar-right">
+          <div class="sync-status" id="syncStatus">
+            <span class="material-icons-round sync-icon synced">cloud_done</span>
+            <div class="sync-text">
+              <span class="sync-label">Synced</span>
+              <span class="sync-time">Just Now</span>
+            </div>
+          </div>
+          <div class="battery-indicator">
+            <span class="material-icons-round" style="font-size:18px;color:#6B7280;">battery_std</span>
+          </div>
+          <button class="icon-btn alert-bell" id="alertBell" aria-label="Notifications">
+            <span class="material-icons-round">notifications_none</span>
+            <span class="bell-dot"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Scrollable Content -->
+      <main class="screen-content" id="homeContent">
+        <!-- Hero Card -->
+        <div class="hero-card" id="heroCard">
+          <div class="hero-bg-pattern">
+            <!-- Optical reticle / caliper SVG overlay -->
+            <svg class="reticle-graphic" viewBox="0 0 200 200" fill="none">
+              <circle cx="100" cy="100" r="60" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" stroke-dasharray="6 4"/>
+              <circle cx="100" cy="100" r="40" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+              <circle cx="100" cy="100" r="20" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+              <line x1="100" y1="30" x2="100" y2="170" stroke="rgba(255,255,255,0.07)" stroke-width="0.75"/>
+              <line x1="30" y1="100" x2="170" y2="100" stroke="rgba(255,255,255,0.07)" stroke-width="0.75"/>
+              <!-- Caliper jaws -->
+              <path d="M55 85 L55 115 M145 85 L145 115" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round"/>
+              <line x1="55" y1="100" x2="72" y2="100" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="2 2"/>
+              <line x1="128" y1="100" x2="145" y2="100" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="2 2"/>
+              <!-- Measurement ticks -->
+              <g stroke="rgba(255,255,255,0.1)" stroke-width="0.75">
+                <line x1="60" y1="95" x2="60" y2="105"/>
+                <line x1="70" y1="93" x2="70" y2="107"/>
+                <line x1="80" y1="95" x2="80" y2="105"/>
+                <line x1="90" y1="95" x2="90" y2="105"/>
+                <line x1="110" y1="95" x2="110" y2="105"/>
+                <line x1="120" y1="95" x2="120" y2="105"/>
+                <line x1="130" y1="93" x2="130" y2="107"/>
+                <line x1="140" y1="95" x2="140" y2="105"/>
+              </g>
+            </svg>
+          </div>
+          <div class="hero-content">
+            <div class="hero-header">
+              <div class="hero-icon-wrap">
+                <span class="material-icons-round">center_focus_strong</span>
+              </div>
+              <div>
+                <h2 class="hero-title">New Inspection Scan</h2>
+                <p class="hero-subtitle">Bark view &amp; cross-section analysis</p>
+              </div>
+            </div>
+            <div class="mode-toggle" id="modeToggle">
+              <button class="mode-btn active" data-mode="bark">
+                <span class="material-icons-round" style="font-size:16px">layers</span>
+                Bark
+              </button>
+              <button class="mode-btn" data-mode="caliper">
+                <span class="material-icons-round" style="font-size:16px">straighten</span>
+                Caliper
+              </button>
+              <div class="mode-slider"></div>
+            </div>
+            <button class="scan-btn" id="startScanBtn">
+              <span class="material-icons-round">camera_alt</span>
+              Start Optical Scan
+              <div class="scan-btn-shimmer"></div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric Cards Grid -->
+        <div class="metrics-grid">
+          <div class="metric-card" id="metricScans">
+            <div class="metric-header">
+              <span class="metric-label">Scans Today</span>
+              <span class="trend-pill positive">
+                <span class="material-icons-round" style="font-size:12px">trending_up</span>
+                +12%
+              </span>
+            </div>
+            <div class="metric-value-row">
+              <span class="metric-value" id="scansCounter">28</span>
+              <svg class="sparkline" viewBox="0 0 80 32" fill="none">
+                <defs>
+                  <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#14532D" stop-opacity="0.15"/>
+                    <stop offset="100%" stop-color="#14532D" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path d="M0 28 L10 22 L20 24 L30 18 L40 20 L50 14 L60 10 L70 6 L80 4" stroke="#14532D" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="sparkline-path"/>
+                <path d="M0 28 L10 22 L20 24 L30 18 L40 20 L50 14 L60 10 L70 6 L80 4 L80 32 L0 32 Z" fill="url(#sparkGrad)"/>
+              </svg>
+            </div>
+            <span class="metric-micro">vs yesterday</span>
+          </div>
+
+          <div class="metric-card" id="metricRatio">
+            <div class="metric-header">
+              <span class="metric-label">Alba &amp; C5 Ratio</span>
+            </div>
+            <div class="metric-value-row gauge-row">
+              <div class="circular-gauge" id="ratioGauge">
+                <svg viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="34" stroke="#E5E7EB" stroke-width="6" fill="none"/>
+                  <circle cx="40" cy="40" r="34" stroke="url(#gaugeGrad)" stroke-width="6" fill="none"
+                    stroke-dasharray="213.6" stroke-dashoffset="18.4" stroke-linecap="round"
+                    transform="rotate(-90 40 40)" class="gauge-fill"/>
+                  <defs>
+                    <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#14532D"/>
+                      <stop offset="100%" stop-color="#D97706"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <span class="gauge-value">91.4<small>%</small></span>
+              </div>
+              <div class="grade-tags">
+                <span class="grade-tag alba">Alba 68%</span>
+                <span class="grade-tag c5">C5 23%</span>
+                <span class="grade-tag other">Other 9%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <button class="pill-btn" id="gradingGuideBtn">
+            <span class="material-icons-round" style="font-size:16px">menu_book</span>
+            Grading Guide (SLS 81)
+          </button>
+          <button class="pill-btn" id="calibrationLogsBtn">
+            <span class="material-icons-round" style="font-size:16px">tune</span>
+            Calibration Logs
+          </button>
+        </div>
+
+        <!-- Recent Scans Feed -->
+        <div class="section-header">
+          <h3 class="section-title">Recent Scans</h3>
+          <button class="view-all-link">View All</button>
+        </div>
+
+        <div class="scans-feed" id="scansFeed">
+          <!-- Scan Item 1 -->
+          <div class="scan-item" style="--delay: 0">
+            <div class="scan-thumb">
+              <img src="quill_thumb_1.jpg" alt="Quill cross-section" onerror="this.style.display='none';this.parentElement.classList.add('fallback')" />
+            </div>
+            <div class="scan-info">
+              <div class="scan-info-top">
+                <span class="sample-id">SMP-731398</span>
+                <span class="scan-time">2 min ago</span>
+              </div>
+              <div class="scan-info-bottom">
+                <span class="diameter">Ø 6.2 mm</span>
+                <span class="grade-pill alba">Alba Grade</span>
+              </div>
+            </div>
+            <span class="material-icons-round chevron">chevron_right</span>
+          </div>
+
+          <!-- Scan Item 2 -->
+          <div class="scan-item" style="--delay: 1">
+            <div class="scan-thumb">
+              <img src="quill_thumb_2.jpg" alt="Quill cross-section" onerror="this.style.display='none';this.parentElement.classList.add('fallback')" />
+            </div>
+            <div class="scan-info">
+              <div class="scan-info-top">
+                <span class="sample-id">SMP-731397</span>
+                <span class="scan-time">14 min ago</span>
+              </div>
+              <div class="scan-info-bottom">
+                <span class="diameter">Ø 8.1 mm</span>
+                <span class="grade-pill c5">C5 Super</span>
+              </div>
+            </div>
+            <span class="material-icons-round chevron">chevron_right</span>
+          </div>
+
+          <!-- Scan Item 3 -->
+          <div class="scan-item" style="--delay: 2">
+            <div class="scan-thumb">
+              <img src="quill_thumb_3.jpg" alt="Quill cross-section" onerror="this.style.display='none';this.parentElement.classList.add('fallback')" />
+            </div>
+            <div class="scan-info">
+              <div class="scan-info-top">
+                <span class="sample-id">SMP-731396</span>
+                <span class="scan-time">28 min ago</span>
+              </div>
+              <div class="scan-info-bottom">
+                <span class="diameter">Ø 12.4 mm</span>
+                <span class="grade-pill commercial">Commercial M4</span>
+              </div>
+            </div>
+            <span class="material-icons-round chevron">chevron_right</span>
+          </div>
+
+          <!-- Scan Item 4 -->
+          <div class="scan-item" style="--delay: 3">
+            <div class="scan-thumb fallback"></div>
+            <div class="scan-info">
+              <div class="scan-info-top">
+                <span class="sample-id">SMP-731395</span>
+                <span class="scan-time">41 min ago</span>
+              </div>
+              <div class="scan-info-bottom">
+                <span class="diameter">Ø 5.8 mm</span>
+                <span class="grade-pill alba">Alba Grade</span>
+              </div>
+            </div>
+            <span class="material-icons-round chevron">chevron_right</span>
+          </div>
+        </div>
+
+        <div class="bottom-spacer"></div>
+      </main>
+    </div>
+
+    <!-- ====== SCREEN 2: SETTINGS ====== -->
+    <div class="screen" id="screenSettings">
+      <header class="app-bar">
+        <div class="app-bar-left">
+          <button class="icon-btn back-btn" id="settingsBack" aria-label="Back">
+            <span class="material-icons-round">arrow_back_ios_new</span>
+          </button>
+          <span class="page-title">Settings</span>
+        </div>
+        <div class="app-bar-right">
+          <div class="sync-status small">
+            <span class="material-icons-round sync-icon synced">cloud_done</span>
+            <span class="sync-label">Synced</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="screen-content" id="settingsContent">
+        <!-- User Header Card -->
+        <div class="user-card">
+          <div class="user-avatar">
+            <div class="avatar-circle">
+              <span class="avatar-initials">DI</span>
+            </div>
+            <div class="avatar-status-dot"></div>
+          </div>
+          <div class="user-info">
+            <h3 class="user-name">Demo Inspector</h3>
+            <p class="user-email">demo@quillgrade.com</p>
+            <div class="user-badge">
+              <span class="material-icons-round" style="font-size:12px">verified</span>
+              Lead Field Assessor • Matara Hub
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Hardware & Optics -->
+        <div class="settings-section">
+          <span class="section-label">Hardware &amp; Optics</span>
+          <div class="settings-group">
+            <div class="settings-item" id="opticalCalibration">
+              <div class="settings-item-icon green">
+                <span class="material-icons-round">tune</span>
+              </div>
+              <div class="settings-item-content">
+                <span class="settings-item-title">Optical Calibration</span>
+                <div class="settings-item-status">
+                  <span class="status-dot calibrated"></span>
+                  <span class="status-text">Calibrated (12mm reference marker • Valid for 5 days)</span>
+                </div>
+              </div>
+              <span class="material-icons-round chevron-sm">chevron_right</span>
+            </div>
+            <div class="settings-divider"></div>
+            <div class="settings-item">
+              <div class="settings-item-icon green">
+                <span class="material-icons-round">camera_alt</span>
+              </div>
+              <div class="settings-item-content">
+                <span class="settings-item-title">Camera Sensor &amp; Exposure</span>
+                <span class="settings-item-desc">Auto-calibrated for bark reflectance</span>
+              </div>
+              <span class="material-icons-round chevron-sm">chevron_right</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Standards & Compliance -->
+        <div class="settings-section">
+          <span class="section-label">Standards &amp; Compliance</span>
+          <div class="settings-group">
+            <div class="settings-item">
+              <div class="settings-item-icon amber">
+                <span class="material-icons-round">verified</span>
+              </div>
+              <div class="settings-item-content">
+                <span class="settings-item-title">Grading Standard</span>
+                <div class="settings-item-badge-row">
+                  <span class="sls-badge">
+                    <span class="material-icons-round" style="font-size:11px">shield</span>
+                    SLS 81:2022 Certified
+                  </span>
+                </div>
+              </div>
+              <span class="material-icons-round chevron-sm">chevron_right</span>
+            </div>
+            <div class="settings-divider"></div>
+            <div class="settings-item">
+              <div class="settings-item-icon amber">
+                <span class="material-icons-round">precision_manufacturing</span>
+              </div>
+              <div class="settings-item-content">
+                <span class="settings-item-title">Tolerance Threshold</span>
+                <span class="settings-item-desc">±0.1 mm precision</span>
+              </div>
+              <span class="material-icons-round chevron-sm">chevron_right</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: System Preferences -->
+        <div class="settings-section">
+          <span class="section-label">System Preferences</span>
+          <div class="settings-group">
+            <div class="settings-item">
+              <div class="settings-item-icon slate">
+                <span class="material-icons-round">language</span>
+              </div>
+              <div class="settings-item-content">
+                <span class="settings-item-title">Language</span>
+                <span class="settings-item-desc">English (US)</span>
+              </div>
+              <div class="settings-trailing-value">
+                <span>English (US)</span>
+                <span class="material-icons-round chevron-sm">chevron_right</span>
+              </div>
+            </div>
+            <div class="settings-divider"></div>
+            <div class="settings-item">
+              <div class="settings-item-icon slate">
+                <span class="material-icons-round">cloud_sync</span>
+              </div>
+              <div class="settings-item-content">
+                <span class="settings-item-title">Offline Storage &amp; Cloud Sync</span>
+                <span class="settings-item-desc">Auto-sync enabled (Wi-Fi/Cellular)</span>
+              </div>
+              <span class="material-icons-round chevron-sm">chevron_right</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sign Out & Version -->
+        <div class="settings-footer">
+          <button class="sign-out-btn" id="signOutBtn">
+            <span class="material-icons-round">logout</span>
+            Sign Out
+          </button>
+          <span class="build-version">QuillGrade v2.4.1-sls • Build 2412</span>
+        </div>
+
+        <div class="bottom-spacer"></div>
+      </main>
+    </div>
+
+    <!-- ====== BOTTOM NAVIGATION ====== -->
+    <nav class="bottom-nav" id="bottomNav">
+      <button class="nav-item active" data-screen="screenHome" id="navHome">
+        <span class="material-icons-round">home</span>
+        <span class="nav-label">Home</span>
+      </button>
+      <button class="nav-item" data-screen="screenHistory" id="navHistory">
+        <span class="material-icons-round">history</span>
+        <span class="nav-label">History</span>
+      </button>
+      <div class="fab-container">
+        <button class="fab" id="fabScan" aria-label="Scan">
+          <div class="fab-glow"></div>
+          <span class="material-icons-round">center_focus_strong</span>
+        </button>
+      </div>
+      <button class="nav-item" data-screen="screenAnalytics" id="navAnalytics">
+        <span class="material-icons-round">analytics</span>
+        <span class="nav-label">Analytics</span>
+      </button>
+      <button class="nav-item" data-screen="screenSettings" id="navSettings">
+        <span class="material-icons-round">settings</span>
+        <span class="nav-label">Settings</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

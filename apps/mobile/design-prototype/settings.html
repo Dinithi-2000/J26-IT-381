@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>QuillGrade — Settings Screen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Force settings screen visible on load */
+    #screenSettings { opacity: 1 !important; transform: none !important; pointer-events: auto !important; }
+    #screenHome { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="phone-frame">
+    <!-- SCREEN 2: SETTINGS (shown by default) -->
+    <div class="screen active" id="screenSettings">
+      <header class="app-bar">
+        <div class="app-bar-left">
+          <button class="icon-btn back-btn" aria-label="Back">
+            <span class="material-icons-round">arrow_back_ios_new</span>
+          </button>
+          <span class="page-title">Settings</span>
+        </div>
+        <div class="app-bar-right">
+          <div class="sync-status small">
+            <span class="material-icons-round sync-icon synced">cloud_done</span>
+            <span class="sync-label">Synced</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="screen-content">
+        <!-- User Header Card -->
+        <div class="user-card">
+          <div class="user-avatar">
+            <div class="avatar-circle">
+              <span class="avatar-initials">DI</span>
+            </div>
+            <div class="avatar-status-dot"></div>
+          </div>
+          <div class="user-info">
+            <h3 class="user-name">Demo Inspector</h3>
+            <p class="user-email">demo@quillgrade.com</p>
+            <div class="user-badge">
+              <span class="material-icons-round" style="font-size:12px">verified</span>
+              Lead Field Assessor • Matara Hub
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Hardware & Optics -->
+        <div class="settings-section">
+          <span class="section-label">Hardware &amp; Optics</span>
+          <div class="settings-group">
+            <div class="settings-item">
+              <div class="settings-item-icon green">
+                <span class="material-icons-round">tune</span>
+              </div>
+              <div class="settings-item-content">
+                <span class="settings-item-title">Optical Calibration</span>
+                <div class="settings-item-status">
+                  <span class="status-dot calibrated"></span>
+                  <span class="status-text">Calibrated (12mm reference marker • Valid for 5 days)</span>
+                </div>
+              </div>
+              <span class="material-icons-round chevron-sm">chevron_right</span>
+            </div>
+            <div class="settings-divider"></div>
+            <div class="settings-item">
+              <div class="settings-item-icon green">
+                <span class="material-icons-round">camera_alt</span>
+              </div>
+              <div class="settings-item-content">
+                <span class="settings-item-title">Camera Sensor &amp; Exposure</span>
+                <span class="settings-item-desc">Auto-calibrated for bark reflectance</span>
+              </div>
+              <span class="material-icons-round chevron-sm">chevron_right</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Standards & Compliance -->
+        <div class="settings-section">
+          <span class="section-label">Standards &amp; Compliance</span>
+          <div class="settings-group">
+            <div class="settings-item">
+              <div class="settings-item-icon amber">
+                <span class="material-icons-round">verified</span>
+              </div>
+              <div class="settings-item-content">
+                <span class="settings-item-title">Grading Standard</span>
+                <div class="settings-item-badge-row">
+                  <span class="sls-badge">
+                    <span class="material-icons-round" style="font-size:11px">shield</span>
+                    SLS 81:2022 Certified
+                  </span>
+                </div>
+              </div>
+              <span class="material-icons-round chevron-sm">chevron_right</span>
+            </div>
+            <div class="settings-divider"></div>
+            <div class="settings-item">
+              <div class="settings-item-icon amber">
+                <span class="material-icons-round">precision_manufacturing</span>
+              </div>
+              <div class="settings-item-content">
+                <span class="settings-item-title">Tolerance Threshold</span>
+                <span class="settings-item-desc">±0.1 mm precision</span>
+              </div>
+              <span class="material-icons-round chevron-sm">chevron_right</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: System Preferences -->
+        <div class="settings-section">
+          <span class="section-label">System Preferences</span>
+          <div class="settings-group">
+            <div class="settings-item">
+              <div class="settings-item-icon slate">
+                <span class="material-icons-round">language</span>
+              </div>
+              <div class="settings-item-content">
+                <span class="settings-item-title">Language</span>
+                <span class="settings-item-desc">English (US)</span>
+              </div>
+              <div class="settings-trailing-value">
+                <span>English (US)</span>
+                <span class="material-icons-round chevron-sm">chevron_right</span>
+              </div>
+            </div>
+            <div class="settings-divider"></div>
+            <div class="settings-item">
+              <div class="settings-item-icon slate">
+                <span class="material-icons-round">cloud_sync</span>
+              </div>
+              <div class="settings-item-content">
+                <span class="settings-item-title">Offline Storage &amp; Cloud Sync</span>
+                <span class="settings-item-desc">Auto-sync enabled (Wi-Fi/Cellular)</span>
+              </div>
+              <span class="material-icons-round chevron-sm">chevron_right</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sign Out & Version -->
+        <div class="settings-footer">
+          <button class="sign-out-btn">
+            <span class="material-icons-round">logout</span>
+            Sign Out
+          </button>
+          <span class="build-version">QuillGrade v2.4.1-sls • Build 2412</span>
+        </div>
+
+        <div class="bottom-spacer"></div>
+      </main>
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+      <button class="nav-item" data-screen="screenHome">
+        <span class="material-icons-round">home</span>
+        <span class="nav-label">Home</span>
+      </button>
+      <button class="nav-item">
+        <span class="material-icons-round">history</span>
+        <span class="nav-label">History</span>
+      </button>
+      <div class="fab-container">
+        <button class="fab" aria-label="Scan">
+          <div class="fab-glow"></div>
+          <span class="material-icons-round">center_focus_strong</span>
+        </button>
+      </div>
+      <button class="nav-item">
+        <span class="material-icons-round">analytics</span>
+        <span class="nav-label">Analytics</span>
+      </button>
+      <button class="nav-item active" data-screen="screenSettings">
+        <span class="material-icons-round">settings</span>
+        <span class="nav-label">Settings</span>
+      </button>
+    </nav>
+  </div>
+</body>
+</html>

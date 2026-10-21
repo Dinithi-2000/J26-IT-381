@@ -1,0 +1,15 @@
+{
+  "model_version": "diameter_v1",
+  "image_size": [
+    224,
+    224
+  ],
+  "image_pixel_range": "0-255",
+  "target_mean": 14.438356399536133,
+  "target_std": 6.741237163543701,
+  "target_unit": "mm",
+  "preprocessing": "EXIF transpose, RGB, PIL ImageOps.pad BILINEAR white",
+  "output": "normalized_diameter",
+  "measurement_source": "digital_caliper_width",
+  "experimental": true
+}

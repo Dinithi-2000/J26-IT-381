@@ -1,0 +1,20 @@
+{
+  "model_version": "v2",
+  "class_names": [
+    "ALBA",
+    "C4",
+    "C5",
+    "EXTRA",
+    "H1",
+    "H2",
+    "M4"
+  ],
+  "diameter_mean": 14.438356399536133,
+  "diameter_std": 6.741237163543701,
+  "image_size": [
+    224,
+    224
+  ],
+  "image_pixel_range": "0-255",
+  "uses_class_weights": true
+}
