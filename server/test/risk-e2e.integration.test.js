@@ -1,11 +1,15 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes, randomUUID} from 'node:crypto';
+import {mkdtemp, readFile, rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {createServer} from 'node:http';
 import mongoose from 'mongoose';
 import {createApp} from '../src/server.js';
 import {Sample, SensorReading, DegradationPrediction} from '../src/module02/models.js';
 import {SyntheticRiskPrediction} from '../src/module02-risk/model.js';
+import {ImageConditionAnalysis} from '../src/module02-image/model.js';
 import {createQualityService} from '../../client/src/services/qualityService.js';
 
 const uri = process.env.MODULE02_TEST_MONGODB_URI;
@@ -26,6 +30,8 @@ test('frontend API client -> authenticated Node -> real Model 02 -> isolated Mon
   process.env.MODULE02_OPERATOR_TOKEN = operator;
   process.env.MODULE02_DEVICE_KEYS = JSON.stringify({'E2E-TEST-DEVICE': deviceKey});
   const sampleId = `E2E-TEST-${randomUUID()}`;
+  const imageDirectory = await mkdtemp(join(tmpdir(), 'cinnasense-module02-e2e-'));
+  process.env.MODULE02_IMAGE_UPLOAD_DIR = imageDirectory;
   let server;
   await mongoose.connect(uri, {serverSelectionTimeoutMS: 5000});
   try {
@@ -76,6 +82,22 @@ test('frontend API client -> authenticated Node -> real Model 02 -> isolated Mon
     assert(retries.every(item => item._id === prediction._id));
     assert(retries.every(item => item.createdAt === prediction.createdAt && item.updatedAt === prediction.updatedAt));
     assert.equal(await SyntheticRiskPrediction.countDocuments({sampleId}), 1);
+    // Real trained image inference and persisted image history, isolated from Atlas.
+    const photograph = await readFile(process.env.MODULE02_E2E_IMAGE_PATH || 'C:/Users/USER/Downloads/OneDrive_1_10-20-2026/Good_quality/CIN001_01.jpg');
+    const upload = await fetch(`${baseUrl}/module-02/image-classification/images?sampleId=${sampleId}`, {
+      method:'POST', headers:{Authorization:`Bearer ${operator}`, 'Content-Type':'image/jpeg'}, body:photograph,
+    });
+    assert.equal(upload.status,201);
+    const classification = await upload.json();
+    assert.equal(classification.analysisStatus,'completed');
+    assert.equal(classification.predictedCondition,'good_quality');
+    assert(Math.abs(classification.modelScore - 0.8355658054351807) < 0.000001);
+    assert.equal(await ImageConditionAnalysis.countDocuments({sampleId}),1);
+    const imageHistory = await (await fetch(`${baseUrl}/module-02/image-classification/history?sampleId=${sampleId}`)).json();
+    assert.equal(imageHistory.data[0]._id,classification._id);
+    const storedPhoto = await fetch(`http://127.0.0.1:${server.address().port}${classification.imageUrl}`);
+    assert.equal(storedPhoto.status,200);
+    assert(Buffer.from(await storedPhoto.arrayBuffer()).equals(photograph));
     const history = await frontend.getRiskPredictions(sampleId, operator);
     assert.equal(history.pagination.total, 1);
     assert.equal(history.data[0]._id, prediction._id);
@@ -96,11 +118,12 @@ test('frontend API client -> authenticated Node -> real Model 02 -> isolated Mon
     console.log(JSON.stringify({isolated_e2e: 'passed', sample_creation: true, reading_persistence: true,
       real_model02_prediction: prediction.predictedRisk, prediction_persistence: true,
       frontend_client_reads_and_auth: true, history_records: 1, retries: 5, unique_records: 1,
-      model01_and_price_proxies: 'healthy', production_writes: false}));
+      model01_and_price_proxies: 'healthy', real_model01_inference_and_image_history:true, production_writes: false}));
   } finally {
     if (server) {server.closeAllConnections(); await new Promise(resolve => server.close(resolve));}
-    await Promise.all([SyntheticRiskPrediction, SensorReading, Sample].map(Model => Model.deleteMany({sampleId})));
+    await Promise.all([ImageConditionAnalysis, SyntheticRiskPrediction, SensorReading, Sample].map(Model => Model.deleteMany({sampleId})));
     await mongoose.disconnect();
+    await rm(imageDirectory,{recursive:true,force:true});
     for (const key of Object.keys(process.env)) if (!(key in envBefore)) delete process.env[key];
     Object.assign(process.env, envBefore);
   }

@@ -148,10 +148,12 @@ test('stored illustrative history permits a presentation request without represe
   assert.equal(readingCondition({...capture, dataOrigin:'REAL_SENSOR'}, {}, Date.parse('2026-10-23T00:00:00Z')).stale, true);
 });
 
-test('dashboard excludes illustrative records and keeps genuine records in backend order', async () => {
+test('dashboard loads stored records with intact provenance and backend order', async () => {
   const rows = [{sampleId:'CIN-PP1-003',dataOrigin:'DEMO_DATA'}, {sampleId:'CIN-PP1-001',dataOrigin:'DEMO_DATA'},
     {sampleId:'CIN003',dataOrigin:'REAL_SENSOR'}, {sampleId:'CIN001'}, {sampleId:'CIN-DEMO-001'}];
   const service = createQualityService({fetcher:async()=>Response.json({data:rows,pagination:{pages:1}})});
-  assert.deepEqual((await service.getSamples()).map(row=>row.id), ['CIN003','CIN001']);
+  const stored = await service.getSamples();
+  assert.deepEqual(stored.map(row=>row.id), rows.map(row=>row.sampleId));
+  assert.equal(stored[0].dataOrigin, 'DEMO_DATA');
   assert.equal(rows.length,5, 'Filtering does not mutate stored data');
 });

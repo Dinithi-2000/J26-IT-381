@@ -18,12 +18,13 @@ export function Module02SensorView({sample, demo = false, now = Date.now()}) {
   const hasColor = rgb.length === 3 && rgb.every(Number.isFinite);
   const change = Number.isFinite(current?.weight) && sample?.initialWeight > 0 ? (current.weight - sample.initialWeight) / sample.initialWeight * 100 : null;
   return <Panel title="Weight and color evidence" eyebrow="MODULE 02 / SENSOR MEASUREMENTS" badge={demo ? 'DEMO DATA' : real ? 'REAL_SENSOR RECORD' : undefined} className="module02-sensor-panel">
-    <p>Values describe stored captures. Connection labels use the last record and its age; they do not prove that hardware is connected now.</p>
+    <p>Weight represents the combined total of four cinnamon quills, approximately four inches each. Connection labels use stored record age and do not prove that hardware is connected now.</p>
+    {sample?.dataOrigin === 'DEMO_DATA' && <p className="research-note">Illustrative stored readings — not physical measurements. These values do not establish the measured weight of your actual four-quill group.</p>}
     {!sample && <p role="status">No samples available. Register a sample before importing actual measurements.</p>}
     <dl className="risk-input-grid">
       {[['Sample ID', sample?.id || 'Not selected'], ['Storage start', sample?.storageStartDate || 'Not recorded'],
         ['Storage duration at capture', value(current?.day, ' completed days')], ['Last measurement', stamp(current?.timestamp)],
-        ['Current weight', value(current?.weight, ' g')], ['Previous measured weight', value(previous?.weight, ' g')],
+        ['Current total weight (4 quills)', value(current?.weight, ' g')], ['Previous total weight', value(previous?.weight, ' g')],
         ['Weight change from initial', value(change, ' %')], ['Load Cell connection', status('weight')],
         ['Calibration status', demo ? 'DEMO metadata only' : current?.calibration?.calibratedAt ? 'Calibration recorded; not independently verified' : 'No calibration recorded'],
         ['Calibration time', stamp(current?.calibration?.calibratedAt)], ['Last tare', stamp(current?.calibration?.tareAt)],

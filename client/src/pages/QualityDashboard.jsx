@@ -30,6 +30,8 @@ export default function QualityDashboard() {
         <p>Review image condition alongside stored sensor measurements and synthetic deterioration risk. Each result keeps its own timestamp and provenance.</p></div>
       <button className="button secondary" type="button" disabled={status === 'loading'} onClick={refresh}>Refresh stored records</button>
       <p>{samples.length} registered records{sample ? ` · Selected: ${sample.id}` : ''}</p>
+      {sample?.dataOrigin === 'DEMO_DATA' && <p className="module02-demo-note" role="note"><strong>Illustrative stored data</strong> — these saved readings are synthetic, not physical sensor measurements. Model outputs are requested from the actual inference services.</p>}
+      <p className="panel-caption">The monitored group contains four cinnamon quills, approximately four inches each. Weight values represent their combined total, not an individual quill.</p>
       {!sample && status !== 'loading' && <p>No cinnamon record is selected. <Link className="inline-link" to="/module-02/samples">Register cinnamon for monitoring</Link>. Measurements appear after sensor readings are received.</p>}
     </section>
     <SampleSelector />

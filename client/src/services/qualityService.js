@@ -18,8 +18,8 @@ export function createQualityService({ baseUrl = '/api', fetcher = globalThis.fe
       // Sample summaries are paginated; obtain all pages without fetching sensor histories for every sample.
       let page = 1, pages = 1, samples = [];
       do { const result = await request(`/samples?limit=200&page=${page}`,options); samples.push(...result.data.map(normalize)); pages=result.pagination.pages; page++; } while(page<=pages);
-      // Keep illustrative records in Atlas, outside the operational dashboard.
-      return samples.filter(sample => sample.dataOrigin !== 'DEMO_DATA' && !/^CIN-(?:PP1|DEMO)-/i.test(sample.id));
+      // Preserve server provenance. Stored illustrative records remain explicitly labeled.
+      return samples;
     },
     async getSampleData(sample, options) {
       const [history,latest,images,predictions,baseline] = await Promise.all([
