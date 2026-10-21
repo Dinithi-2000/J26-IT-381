@@ -1,0 +1,103 @@
+{
+  "model_version": "model01-mobilenetv2-20261020-1055",
+  "model_file": "cinnasense_model01_mobilenetv2.keras",
+  "architecture": "MobileNetV2 (pretrained: imagenet) + global average pooling + dropout + dense softmax",
+  "classes": [
+    "Good_quality",
+    "Suspected_Mold"
+  ],
+  "image_size": 224,
+  "input": "RGB float32 pixel values 0-255, shape (batch, 224, 224, 3); scaling to [-1, 1] is inside the model",
+  "preprocessing": {
+    "exif_transpose": true,
+    "max_side_before_resize": 640,
+    "jpeg_quality": 95,
+    "resize_mode": "pad",
+    "antialias": true
+  },
+  "training": {
+    "selected": "head only",
+    "head_epochs_run": 24,
+    "fine_tune_epochs_run": 10,
+    "head_lr": 0.001,
+    "fine_tune_lr": 1e-05,
+    "fine_tune_from_layer": 100,
+    "batch_size": 32,
+    "class_weights": {
+      "Good_quality": 0.83,
+      "Suspected_Mold": 1.257
+    },
+    "augmentation": "flips, 90-degree rotations, 85-100% crop, brightness \u00b18%, contrast 0.9-1.1",
+    "seed": 42
+  },
+  "data": {
+    "split_method": "stratified by class, grouped by sample (one group per image (no sample ids found))",
+    "grouping": "one group per image (no sample ids found)",
+    "images_per_split": {
+      "train": {
+        "Good_quality": 53,
+        "Suspected_Mold": 35
+      },
+      "val": {
+        "Good_quality": 12,
+        "Suspected_Mold": 8
+      },
+      "test": {
+        "Good_quality": 12,
+        "Suspected_Mold": 8
+      }
+    },
+    "dataset_root": "."
+  },
+  "test_metrics": {
+    "test_images": 20,
+    "accuracy": 1.0,
+    "accuracy_95ci": [
+      1.0,
+      1.0
+    ],
+    "macro_precision": 1.0,
+    "macro_recall": 1.0,
+    "macro_f1": 1.0,
+    "macro_f1_95ci": [
+      1.0,
+      1.0
+    ],
+    "weighted_precision": 1.0,
+    "weighted_recall": 1.0,
+    "weighted_f1": 1.0,
+    "majority_class_baseline_accuracy": 0.6,
+    "per_class": {
+      "Good_quality": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 12
+      },
+      "Suspected_Mold": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 8
+      }
+    },
+    "confusion_matrix": [
+      [
+        12,
+        0
+      ],
+      [
+        0,
+        8
+      ]
+    ],
+    "validation_macro_f1": 0.8465,
+    "validation_accuracy": 0.85
+  },
+  "caveats": [
+    "'model_score' is the softmax output, not a calibrated probability.",
+    "Suspected mould is an image-based indication only and needs physical or laboratory confirmation."
+  ],
+  "tensorflow_version": "2.21.0",
+  "created_at": "2026-10-20T10:57:39+05:30"
+}
