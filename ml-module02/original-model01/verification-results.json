@@ -1,0 +1,55 @@
+{
+  "backup_root": "C:\\Github Project\\CinnaSense-backups\\consolidation-20261021-085249",
+  "complete_backups_verified": true,
+  "nested_working_files_models_branches_stashes_unchanged": true,
+  "nested_files_checked": 286,
+  "nested_metadata_difference": [
+    ".git/logs/refs/remotes/origin/HEAD"
+  ],
+  "nested_metadata_note": "One remote set-head reflog entry appended during session; prior entries intact; pre/post logs preserved; no restoration performed.",
+  "preexisting_main_files_checked": 161,
+  "preexisting_main_files_changed": [
+    "README.md"
+  ],
+  "active_source_config_and_model_weights_unchanged": true,
+  "archive_source_files_verified": 503,
+  "archive_live_env_or_git_directories": 0,
+  "private_environment_values_found_in_archive": 0,
+  "active_branch": "GamageIT23481244",
+  "tests": {
+    "frontend": 19,
+    "backend_real_mongo": 39,
+    "isolated_real_ml_e2e": 1,
+    "model01_python": 10,
+    "model02_price_python": 14,
+    "total_passed": 83,
+    "skipped": 0,
+    "frontend_build": "passed"
+  },
+  "live_model01": {
+    "class": "good_quality",
+    "score": 0.8355658054351807,
+    "prior_baseline_score": 0.8355661034584045,
+    "absolute_score_difference": 2.980232238769531e-07,
+    "within_1e_minus_6": true,
+    "weights_and_preprocessing_identical": true
+  },
+  "live_price": {
+    "prediction": 4668.93310546875,
+    "currency": "LKR",
+    "unit": "per_kg",
+    "modelVersion": "xgb-v1",
+    "input": {
+      "date": "2026-10-21",
+      "district": "Galle",
+      "grade": "Alba"
+    }
+  },
+  "backend_health": {
+    "status": "ok",
+    "message": "API is running",
+    "database": "connected"
+  },
+  "production_test_writes": false,
+  "legacy_service_activated": false
+}

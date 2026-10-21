@@ -1,3 +1,5 @@
+> ESP32-CAM + existing Model 01 setup: [local model placement, camera configuration, exact run commands and tests](ml-module02/ESP32_CAM_INTEGRATION.md). Firmware is unchanged. Copy the trained Colab artifact locally; no retraining or Drive download is performed by the integration.
+
 > Current Module 02 setup: [storage-quality backend](MODULE02_API.md) and [image-condition training, review, API and dashboard guide](ml-module02/IMAGE_CONDITION_GUIDE.md). Both are included alongside Module 01 and the existing Module 04. Dataset label conflicts still require review before training the new image-condition pipeline.
 
 # CinnaSense AI — Phase 1
@@ -245,3 +247,13 @@ Controls send no hardware commands. Offline settings are disabled; demo relay sw
 
 
 Module 02 image-condition prototype: see [training, dataset review, API and dashboard setup](ml-module02/IMAGE_CONDITION_GUIDE.md). The local data audit must be resolved before claiming a trained model.
+
+## Preserved original Model 01 research
+
+The current application remains the main development project. Original nested
+research, stash/index snapshots, historical trained-model variants, notebooks
+and ESP32-CAM firmware are preserved separately in
+[the Model 01 research archive](ml-module02/original-model01/README.md).
+See [the consolidation report](CONSOLIDATION_REPORT.md) for verified external
+backups, reconciliation decisions and missing-artifact limitations. The nested
+repository is retained unchanged; no active model was replaced.

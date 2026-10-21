@@ -1,3 +1,5 @@
+> For the existing Colab model with `["Suspected Mold", "good_quality"]` and unchanged CameraWebServer firmware, use [ESP32_CAM_INTEGRATION.md](ESP32_CAM_INTEGRATION.md). This integration requires copying the trusted model locally, not retraining. Earlier training scripts and audit notes below are retained as historical research tooling.
+
 # Module 02 — visible-condition image baseline (MobileNetV2)
 
 Classifies a stored-cinnamon photo into one of four **mutually exclusive** classes:

@@ -1,6 +1,8 @@
 import { Sample, SensorReading, SampleImage, DegradationPrediction } from './module02/models.js';
 import { createModule02Router } from './module02/routes.js';
 import { createImageRouter } from './module02-image/routes.js';
+import { createRiskRouter } from './module02-risk/routes.js';
+import { SyntheticRiskPrediction } from './module02-risk/model.js';
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
@@ -18,7 +20,7 @@ dotenv.config({ path: resolve(serverDirectory, "../.env") });
 
 const port = process.env.PORT || 5000;
 
-export function createApp({ module02 = {} } = {}) {
+export function createApp({ module02 = {}, module02Risk = {} } = {}) {
 const app = express();
 
 app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }));
@@ -44,6 +46,7 @@ app.get("/api/model-info", async (_request, response, next) => {
 
 app.use("/api/predictions", predictionRoutes);
 app.use("/api/module-02/image-classification", createImageRouter());
+app.use("/api/module-02", createRiskRouter(module02Risk));
 app.use("/api", createModule02Router(module02));
 
 app.use((_request, response) => {
@@ -62,7 +65,7 @@ return app;
 async function startServer() {
   const app = createApp();
   const connected = await connectDatabase();
-  if (connected) await Promise.all([Sample,SensorReading,SampleImage,DegradationPrediction].map(Model=>Model.init()));
+  if (connected) await Promise.all([Sample,SensorReading,SampleImage,DegradationPrediction,SyntheticRiskPrediction].map(Model=>Model.init()));
   app.listen(port, () => {
     console.log(`Server listening on http://localhost:${port}`);
   });

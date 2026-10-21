@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from .model_loader import ModelUnavailableError, load_artifacts
 from .predictor import predict
 from .schemas import PredictionRequest, PredictionResponse
+from .risk_routes import router as risk_router
 
 load_dotenv()
 artifacts = {"model": None, "columns": None, "error": None}
@@ -22,6 +23,7 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(title="Cinnamon Price Prediction Service", lifespan=lifespan)
+app.include_router(risk_router)
 
 
 @app.get("/health")
