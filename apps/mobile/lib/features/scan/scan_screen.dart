@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'validation_dialog.dart';
 import 'hybrid_grading_dialog.dart';
+import 'image_only_grading_dialog.dart';
 import '../../theme.dart';
 import 'capture_validation_controller.dart';
 
@@ -66,9 +67,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         if (!mounted) return;
         final state = ref.read(captureValidationControllerProvider);
         if (succeeded) {
-          if (state.status == CaptureStatus.awaitingMeasurement ||
+          if ((state.gradingMode == GradingMode.imageOnly &&
+                  state.endPhotoPath != null) ||
+              state.status == CaptureStatus.awaitingMeasurement ||
               state.status == CaptureStatus.estimatingDiameter) {
-            final action = await showHybridGradingDialog(context);
+            final action = state.gradingMode == GradingMode.imageOnly
+                ? await showImageOnlyGradingDialog(context)
+                : await showHybridGradingDialog(context);
             if (!mounted) return;
             if (action == HybridDialogAction.saved) {
               final sampleId = ref
@@ -236,6 +241,34 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    DropdownButton<GradingMode>(
+                      key: const Key('gradingModeSelector'),
+                      value: captureState.gradingMode,
+                      isExpanded: true,
+                      dropdownColor: const Color(0xFF18181B),
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      underline: const SizedBox.shrink(),
+                      items: [
+                        for (final mode in GradingMode.values)
+                          DropdownMenuItem(
+                            value: mode,
+                            child: Text(mode.label),
+                          ),
+                      ],
+                      onChanged:
+                          captureState.canSelectGradingMode && !_handlingCapture
+                          ? (mode) {
+                              if (mode != null) {
+                                ref
+                                    .read(
+                                      captureValidationControllerProvider
+                                          .notifier,
+                                    )
+                                    .selectGradingMode(mode);
+                              }
+                            }
+                          : null,
+                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
