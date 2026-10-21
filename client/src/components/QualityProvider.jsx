@@ -52,7 +52,7 @@ export function QualityProvider({ children, service = qualityService }) {
   }, [activeId,demoEnabled,remote.status,revision,service]);
   const readingTime = selected?.records.at(-1)?.timestamp;
   const threshold = selected?.deviceStatus?.offlineAfterSeconds || 300;
-  const deviceStatus = demoEnabled ? 'Demo - no live device' : readingTime && clock-Date.parse(readingTime)<=threshold*1000 ? 'Recent telemetry - not a live stream' : 'Offline - no recent telemetry';
+  const deviceStatus = demoEnabled ? 'Demo - no live device' : selected?.dataOrigin === 'DEMO_DATA' ? 'Stored illustrative records - hardware not connected' : readingTime && clock-Date.parse(readingTime)<=threshold*1000 ? 'Recent telemetry - not a live stream' : 'Offline - no recent telemetry';
 
   async function registerSample(input, token) {
     if(!demoEnabled) {

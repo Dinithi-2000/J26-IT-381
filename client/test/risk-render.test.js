@@ -137,15 +137,15 @@ test('real sensor cards preserve raw versus display RGB and do not turn missing 
       environment: {temperature: {source: 'unavailable'}, humidity: {source: 'unavailable'}}}]};
   const html = renderToStaticMarkup(React.createElement(SensorView, {sample, now: Date.parse(timestamp)+1000}));
   for (const text of ['REAL_SENSOR RECORD', '98.2 g', '100 g', '-1.8 %', 'Raw clear counts', '1000', '128 / 77 / 51',
-    'No Reading', 'unavailable', 'Calibration recorded', 'Weight history', 'RGB change history', 'not a live connection']) assert(html.includes(text), text);
+    'Not available', 'unavailable', 'Calibration recorded', 'Weight history', 'RGB change history', 'not a live connection']) assert(html.includes(text), text);
   assert(!html.includes('NaN')); assert(!html.includes('0 ?C'));
   const history = renderToStaticMarkup(React.createElement(QualityProvider, null, React.createElement(SensorHistory, {sample})));
-  assert(history.includes('No Reading')); assert(history.includes('500 / 300 / 200 / 1000'));
+  assert(history.includes('Not available')); assert(history.includes('500 / 300 / 200 / 1000'));
 });
 
 test('sensor offline, missing sample, and demo states remain explicit without real measurements', () => {
   const empty = renderToStaticMarkup(React.createElement(SensorView, {sample: null}));
-  assert(empty.includes('Sensor Offline')); assert(empty.includes('No samples available')); assert(empty.includes('No Reading'));
+  assert(empty.includes('Sensor Offline')); assert(empty.includes('No samples available')); assert(empty.includes('Not available'));
   const demo = renderToStaticMarkup(React.createElement(SensorView, {sample: {id: 'DEMO', records: []}, demo: true}));
   assert(demo.includes('DEMO DATA')); assert(demo.includes('DEMO - no connected sensor')); assert(!demo.includes('REAL_SENSOR RECORD'));
   const stale = renderToStaticMarkup(React.createElement(SensorView, {sample: {records: [{timestamp: '2026-01-01', weight: null, rgb: [null,null,null]}]}}));

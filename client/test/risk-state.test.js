@@ -137,3 +137,22 @@ test('nullable temperature and humidity cannot trigger a Model 02 prediction req
   assert.equal(workspace.getSnapshot().error, 'Temperature and humidity inputs required for risk prediction.');
   workspace.dispose();
 });
+
+
+test('stored illustrative history permits a presentation request without representing it as recent physical telemetry', () => {
+  const capture = {...reading(), recordedAt: '2026-10-01T00:00:00Z', dataOrigin: 'DEMO_DATA'};
+  const status = readingCondition(capture, {}, Date.parse('2026-10-23T00:00:00Z'));
+  assert.equal(status.invalid, false); assert(status.label.includes('Illustrative stored reading'));
+  assert(!status.label.includes('Recent'));
+  assert.equal(readingCondition({...capture, temperatureC:null}, {}).invalid, true);
+  assert.equal(readingCondition({...capture, dataOrigin:'REAL_SENSOR'}, {}, Date.parse('2026-10-23T00:00:00Z')).stale, true);
+});
+
+test('database-backed illustrative samples preserve provenance and sort deterministically without altering research order', async () => {
+  const rows = [{sampleId:'PP1-003',dataOrigin:'DEMO_DATA'}, {sampleId:'PP1-001',dataOrigin:'DEMO_DATA'}];
+  const service = createQualityService({fetcher:async()=>Response.json({data:rows,pagination:{pages:1}})});
+  assert.deepEqual((await service.getSamples()).map(row=>row.id), ['PP1-001','PP1-003']);
+  assert((await service.getSamples()).every(row=>row.dataOrigin==='DEMO_DATA'));
+  delete rows[0].dataOrigin; delete rows[1].dataOrigin;
+  assert.deepEqual((await service.getSamples()).map(row=>row.id), ['PP1-003','PP1-001']);
+});

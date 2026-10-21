@@ -5,6 +5,7 @@ import {fail, id, number, object, pagination, dateFilter, date as parseDate} fro
 import {isDatabaseConnected} from '../config/db.js';
 import {CATEGORY_MAP, requestRiskPrediction, validateRiskResponse, RiskServiceError} from './client.js';
 import {SyntheticRiskPrediction} from './model.js';
+import {verifyPp1Connection} from '../module02/pp1Dataset.js';
 
 function timestamp(value, name) {
   if (!(value instanceof Date) && typeof value !== 'string') fail(400, 'INVALID_READING', `${name} must be a valid timestamp.`);
@@ -13,7 +14,7 @@ function timestamp(value, name) {
   return parsed.getTime();
 }
 
-export function storedReadingInput(sample, reading, now = Date.now()) {
+export function storedReadingInput(sample, reading, now = Date.now(), {allowIllustrativeHistory = false} = {}) {
   if (reading.temperatureC == null || reading.relativeHumidityPercent == null) fail(400, 'ENVIRONMENT_REQUIRED', 'Temperature and humidity inputs required for risk prediction.');
   const start = timestamp(sample.storageStartDate, 'storageStartDate');
   const recorded = timestamp(reading.recordedAt, 'recordedAt');
@@ -21,7 +22,7 @@ export function storedReadingInput(sample, reading, now = Date.now()) {
   if (recorded < start) fail(400, 'INVALID_READING', 'Reading predates sample storage.');
   const maxAge = Number(process.env.MODULE02_RISK_MAX_READING_AGE_SECONDS || 300);
   if (!Number.isInteger(maxAge) || maxAge < 1 || maxAge > 86400) fail(503, 'RISK_SERVICE_UNCONFIGURED', 'Configure a reading age limit between 1 and 86400 seconds.');
-  if (now - recorded > maxAge * 1000) fail(409, 'STALE_READING', 'Selected reading is too old for a new risk prediction.');
+  if (!(allowIllustrativeHistory && sample.dataOrigin === 'DEMO_DATA' && reading.dataOrigin === 'DEMO_DATA') && now - recorded > maxAge * 1000) fail(409, 'STALE_READING', 'Selected reading is too old for a new risk prediction.');
   const input = {
     storage_day: Math.floor((recorded - start) / 86_400_000),
     temperature_c: reading.temperatureC, humidity_percent: reading.relativeHumidityPercent,
@@ -37,7 +38,7 @@ export function storedReadingInput(sample, reading, now = Date.now()) {
 
 export function createRiskRouter({Sample = DefaultSample, SensorReading = DefaultReading,
   RiskPrediction = SyntheticRiskPrediction, databaseReady = isDatabaseConnected,
-  predict = requestRiskPrediction, now = Date.now} = {}) {
+  predict = requestRiskPrediction, now = Date.now, allowIllustrativeHistory = false} = {}) {
   const router = Router();
   const ready = (_req, _res, next) => {
     if (!databaseReady()) fail(503, 'DATABASE_UNAVAILABLE', 'Module 02 database is unavailable.');
@@ -59,7 +60,8 @@ export function createRiskRouter({Sample = DefaultSample, SensorReading = Defaul
     const key = {sampleId: sample.sampleId, sensorReadingId: reading._id};
     const existing = await RiskPrediction.findOne(key);
     if (existing) return res.json(existing);
-    const inputSnapshot = storedReadingInput(sample, reading, now());
+    if (allowIllustrativeHistory) verifyPp1Connection();
+    const inputSnapshot = storedReadingInput(sample, reading, now(), {allowIllustrativeHistory});
     const output = validateRiskResponse(await predict(inputSnapshot), now());
     const savedAt = new Date(now());
     const values = {...key, inputSnapshot, predictedRisk: output.predicted_risk,
@@ -73,6 +75,7 @@ export function createRiskRouter({Sample = DefaultSample, SensorReading = Defaul
       humidity_percent: reading.environment?.humidity?.source || 'unrecorded', weight_g: 'HX711_calibrated_raw_counts',
       color_r: 'TCS34725_display_normalization', color_g: 'TCS34725_display_normalization', color_b: 'TCS34725_display_normalization',
     };
+    if (reading.dataOrigin === 'DEMO_DATA') values.inputSources = Object.fromEntries(Object.keys(inputSnapshot).map(key=>[key,'DEMO_DATA illustrative record']));
     // Atomic $setOnInsert + unique index protects persistence across processes.
     // Concurrent requests may infer twice, but only the winning result is stored.
     try {

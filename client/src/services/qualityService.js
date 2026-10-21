@@ -18,7 +18,7 @@ export function createQualityService({ baseUrl = '/api', fetcher = globalThis.fe
       // Sample summaries are paginated; obtain all pages without fetching sensor histories for every sample.
       let page = 1, pages = 1, samples = [];
       do { const result = await request(`/samples?limit=200&page=${page}`,options); samples.push(...result.data.map(normalize)); pages=result.pagination.pages; page++; } while(page<=pages);
-      return samples;
+      return samples.every(sample => sample.dataOrigin === 'DEMO_DATA') ? samples.sort((a,b)=>a.id.localeCompare(b.id)) : samples;
     },
     async getSampleData(sample, options) {
       const [history,latest,images,predictions,baseline] = await Promise.all([
@@ -41,4 +41,4 @@ export function createQualityService({ baseUrl = '/api', fetcher = globalThis.fe
     getRiskPredictions: (id,token,page=1,options={}) => request(`${path(id)}/risk-predictions?page=${page}&limit=12`,{...options,token}),
   };
 }
-export const qualityService = createQualityService();
+export const qualityService = createQualityService({baseUrl: import.meta.env?.VITE_MODULE02_API_URL || '/api'});

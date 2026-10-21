@@ -3,7 +3,7 @@ import {Panel} from './QualityUI';
 import TrendChart from './TrendChart';
 import {formatTimestamp} from '../data/demoQuality';
 
-const value = (number, unit = '') => Number.isFinite(number) ? `${Number(number.toFixed(2))}${unit}` : 'No Reading';
+const value = (number, unit = '') => Number.isFinite(number) ? `${Number(number.toFixed(2))}${unit}` : 'Not available';
 const stamp = timestamp => timestamp && Number.isFinite(Date.parse(timestamp)) ? formatTimestamp(timestamp) : 'No measurement';
 
 export function Module02SensorView({sample, demo = false, now = Date.now()}) {
@@ -17,7 +17,7 @@ export function Module02SensorView({sample, demo = false, now = Date.now()}) {
   const rgb = current?.rgb || [];
   const hasColor = rgb.length === 3 && rgb.every(Number.isFinite);
   const change = Number.isFinite(current?.weight) && sample?.initialWeight > 0 ? (current.weight - sample.initialWeight) / sample.initialWeight * 100 : null;
-  return <Panel title="Weight and color evidence" eyebrow="MODULE 02 / SENSOR MEASUREMENTS" badge={demo ? 'DEMO DATA' : real ? 'REAL_SENSOR RECORD' : 'NO VERIFIED DEVICE RECORD'} className="module02-sensor-panel">
+  return <Panel title="Weight and color evidence" eyebrow="MODULE 02 / SENSOR MEASUREMENTS" badge={demo ? 'DEMO DATA' : real ? 'REAL_SENSOR RECORD' : undefined} className="module02-sensor-panel">
     <p>Values describe stored captures. Connection labels use the last record and its age; they do not prove that hardware is connected now.</p>
     {!sample && <p role="status">No samples available. Register a sample before importing actual measurements.</p>}
     <dl className="risk-input-grid">
