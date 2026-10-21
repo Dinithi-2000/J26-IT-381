@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../theme.dart';
 import '../../core/sync/sync_manager.dart';
 
@@ -35,9 +36,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.canvasColor,
-      appBar: AppBar(
-        title: const Text('Cloud Sync'),
-      ),
+      appBar: AppBar(title: const Text('Cloud Sync')),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
@@ -51,7 +50,11 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
             ),
             child: Column(
               children: [
-                const Icon(Icons.cloud_done_rounded, size: 40, color: AppTheme.primaryGreen),
+                const Icon(
+                  Icons.cloud_done_rounded,
+                  size: 40,
+                  color: AppTheme.primaryGreen,
+                ),
                 const SizedBox(height: 12),
                 const Text(
                   'All Records Synced',
@@ -74,7 +77,10 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                       ? const SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
                       : const Text('Sync Now'),
                 ),
@@ -97,16 +103,32 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
               children: [
                 const Text(
                   'Preferences',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.darkText),
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.darkText,
+                  ),
                 ),
                 const SizedBox(height: 8),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Wi-Fi only auto-sync', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                  subtitle: const Text('Save cellular data usage', style: TextStyle(fontSize: 12)),
-                  value: _wifiOnly,
-                  activeThumbColor: AppTheme.primaryGreen,
-                  onChanged: (val) => setState(() => _wifiOnly = val),
+                Material(
+                  type: MaterialType.transparency,
+                  child: SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text(
+                      'Wi-Fi only auto-sync',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Save cellular data usage',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    value: _wifiOnly,
+                    activeThumbColor: AppTheme.primaryGreen,
+                    onChanged: (val) => setState(() => _wifiOnly = val),
+                  ),
                 ),
               ],
             ),
