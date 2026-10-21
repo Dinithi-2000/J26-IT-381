@@ -1,0 +1,60 @@
+{
+ "classes": [
+  "Good_quality",
+  "Suspected_Mold"
+ ],
+ "split_counts": {
+  "train": {
+   "Good_quality": 86,
+   "Suspected_Mold": 115
+  },
+  "val": {
+   "Good_quality": 21,
+   "Suspected_Mold": 29
+  },
+  "test": {
+   "Good_quality": 22,
+   "Suspected_Mold": 33
+  }
+ },
+ "test_report": {
+  "Good_quality": {
+   "precision": 0.7083333333333334,
+   "recall": 0.7727272727272727,
+   "f1-score": 0.7391304347826086,
+   "support": 22.0
+  },
+  "Suspected_Mold": {
+   "precision": 0.8387096774193549,
+   "recall": 0.7878787878787878,
+   "f1-score": 0.8125,
+   "support": 33.0
+  },
+  "accuracy": 0.7818181818181819,
+  "macro avg": {
+   "precision": 0.7735215053763441,
+   "recall": 0.7803030303030303,
+   "f1-score": 0.7758152173913043,
+   "support": 55.0
+  },
+  "weighted avg": {
+   "precision": 0.7865591397849463,
+   "recall": 0.7818181818181819,
+   "f1-score": 0.7831521739130435,
+   "support": 55.0
+  }
+ },
+ "confusion_matrix": [
+  [
+   17,
+   5
+  ],
+  [
+   7,
+   26
+  ]
+ ],
+ "test_images": 55,
+ "seed": 42,
+ "note": "Group split inferred from file names; test set is small. Held-out test images only; not a validated storage-degradation classifier."
+}

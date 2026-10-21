@@ -1,0 +1,111 @@
+/* Module 01 additions. Shared workspace primitives come from quality.css. */
+.dehydration-workspace .dashboard-heading > div { min-width: 0; max-width: 860px; }
+.dehydration-workspace .workspace-heading-icon { flex-shrink: 0; }
+.dehydration-workspace .sidebar-device-panel { margin-top: 30px; }
+.dehydration-workspace .device-row { flex-wrap: wrap; }
+.drying-section-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin: 30px 0 22px; }
+.drying-section-heading > div { min-width: 0; flex: 1 1 300px; }
+.drying-section-heading h2 { color: var(--forest); margin: 0 0 8px; }
+.drying-section-heading .eyebrow { margin-bottom: 7px; }
+.drying-section-heading p:last-child { margin-bottom: 0; font-size: var(--type-secondary); }
+.drying-status { display: inline-flex; align-items: center; gap: 7px; padding: 5px 9px; border-radius: 6px; border: 1px solid #DDE5D4; background: #F0F3EB; color: var(--text-secondary); font-size: var(--type-caption); font-weight: 600; line-height: 1.5; }
+.drying-status.demo { color: var(--text-accent); background: #F5EBDD; border-color: #EADAC1; }
+.drying-status.demo .connection-dot { background: var(--cinnamon); }
+.drying-status.on { color: var(--forest); background: #E8F0E1; }
+.drying-status.on .connection-dot { background: #426B53; }
+.dehydration-workspace .drying-telemetry { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.drying-telemetry .metric-card { padding: 20px; }
+.drying-telemetry .metric-card > div { gap: 8px; }
+.drying-telemetry .metric-card > p { font-size: clamp(1.65rem, 2.1vw, 2.25rem); }
+.drying-telemetry .metric-card:last-child > p { letter-spacing: -.04em; white-space: nowrap; }
+.drying-telemetry .metric-card small { display: inline-block; }
+.drying-main-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: 22px; align-items: stretch; }
+.drying-main-grid > *, .drying-two-grid > * { min-width: 0; }
+.drying-two-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; align-items: start; }
+.drying-section-gap { margin-top: 22px; }
+.dehydration-workspace .drying-rdt-card { background: #EDF2E6; border-color: #DAE5CF; }
+.drying-value-label { font-size: var(--type-label) !important; margin: 0 0 8px; }
+.drying-rdt-value { font-size: clamp(2.2rem, 3.3vw, 3.6rem); font-weight: 650; letter-spacing: -.055em; color: var(--forest); line-height: 1.25; font-variant-numeric: tabular-nums; }
+.drying-completion { margin: 8px 0 26px; font-size: var(--type-label) !important; }
+.drying-completion strong { font-weight: 600; }
+.drying-progress-summary, .drying-rdt-baseline { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: var(--type-label); color: var(--text-secondary); }
+.drying-progress-summary strong { color: var(--forest); }
+.drying-progress { height: 8px; border-radius: 20px; background: #D9E3D0; overflow: hidden; margin: 10px 0 12px; }
+.drying-progress > span { display: block; height: 100%; background: #426B53; border-radius: inherit; transition: width .3s ease; }
+.drying-rdt-baseline strong { margin-left: 5px; font-weight: 600; color: var(--forest); }
+.drying-prediction-note { display: flex; align-items: start; gap: 8px; padding: 17px 0; margin-top: 8px; font-size: var(--type-label); color: var(--text-secondary); }
+.drying-prediction-note > .icon { margin-top: 3px; }
+.dehydration-workspace .drying-detail-list { margin-top: 0; }
+.drying-detail-list > div { gap: 14px; }
+.drying-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px; text-align: center; padding: 20px 10px; }
+.drying-empty .empty-state-icon { margin-bottom: 16px; }
+.drying-empty strong { color: var(--forest); font-size: var(--type-body); font-weight: 600; }
+.drying-empty p { font-size: var(--type-secondary) !important; max-width: 420px; margin: 9px 0 0; }
+.drying-axis-label { font-size: var(--type-caption) !important; margin: 0 0 12px; }
+.drying-chart .chart-plot svg { display: block; width: 100%; height: 190px; overflow: visible; }
+.drying-chart .chart-y-axis { height: 190px; padding-block: 0 8px; }
+.drying-chart .chart-body { grid-template-columns: 42px minmax(0, 1fr); gap: 10px; }
+.drying-x-label { margin: 10px 0 0; text-align: center; }
+.drying-chart .chart-legend { gap: 8px 16px; justify-content: start; }
+.drying-chart .chart-legend i { width: 15px; height: 3px; border-radius: 2px; }
+.drying-observations { margin-top: 18px; border-top: 1px solid var(--border); padding-top: 12px; color: var(--text-secondary); font-size: var(--type-label); }
+.drying-observations summary { cursor: pointer; min-height: 32px; }
+.drying-observations table { margin-top: 12px; }
+.drying-event-list { list-style: none; margin: 0; padding: 0; max-height: 400px; overflow-y: auto; }
+.drying-event-list li { display: flex; gap: 11px; padding: 16px 0; border-bottom: 1px solid #E8EDE2; }
+.drying-event-list li:first-child { padding-top: 0; }
+.drying-event-list li:last-child { border: 0; }
+.drying-event-icon { flex-shrink: 0; color: var(--text-secondary); background: #F0F4EB; border: 1px solid #E1E8D9; border-radius: 7px; display: grid; place-items: center; width: 30px; height: 30px; }
+.drying-event-list li > div { min-width: 0; }
+.drying-event-list strong { font-size: var(--type-label); color: var(--forest); font-weight: 600; }
+.drying-event-list p { font-size: var(--type-caption) !important; margin: 5px 0; }
+.drying-event-list time { font-size: var(--type-caption); color: var(--text-secondary); }
+.drying-workspace-note { display: flex; align-items: start; gap: 9px; margin: 27px 0 0; font-size: var(--type-caption); }
+.drying-workspace-note > .icon { margin-top: 3px; }
+.drying-session-table { margin-top: 24px; }
+.drying-session-table th { min-width: 110px; }
+.drying-session-table td:first-child { white-space: nowrap; }
+.drying-back-link { margin: 0 0 22px; }
+.drying-service-note { display: flex; flex-wrap: wrap; align-items: start; gap: 15px; background: #EDF2E6; border: 1px solid #DAE5CF; border-radius: 12px; padding: 22px; margin-bottom: 22px; color: var(--forest); }
+.drying-service-note > .icon { margin-top: 3px; }
+.drying-service-note > div { flex: 1 1 260px; min-width: 0; }
+.drying-service-note p { font-size: var(--type-secondary); margin: 5px 0 0; }
+.drying-evaluation { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; margin: 24px 0; }
+.drying-evaluation > div { display: grid; gap: 8px; padding: 20px; border: 1px solid var(--border); background: var(--surface); border-radius: 9px; }
+.drying-evaluation span { color: var(--text-accent); font-weight: 650; font-size: var(--type-label); }
+.drying-evaluation strong { color: var(--forest); font-size: var(--type-body); }
+.drying-evaluation small { color: var(--text-secondary); font-size: var(--type-caption); }
+.dehydration-workspace .drying-analytics-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.drying-analytics-note { font-size: var(--type-caption); margin-top: -8px; margin-bottom: 24px; }
+.drying-control-fields { margin: 22px 0 0; padding: 0; border: 0; display: grid; gap: 20px; min-width: 0; }
+.drying-control-fields legend { color: var(--forest); font-size: var(--type-label); font-weight: 650; padding: 0 0 14px; }
+.drying-control-fields label { display: grid; gap: 8px; color: var(--text-secondary); font-size: var(--type-label); font-weight: 550; }
+.drying-control-fields input, .drying-control-fields select { width: 100%; min-width: 0; }
+.drying-control-fields :disabled { opacity: 1; color: var(--text-secondary); cursor: not-allowed; }
+.drying-relay { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.drying-relay > div { display: flex; gap: 12px; align-items: center; color: var(--forest); }
+.drying-relay strong { display: block; font-size: var(--type-label); }
+.drying-relay small { display: block; color: var(--text-secondary); font-size: var(--type-caption); }
+.drying-relay button { display: flex; align-items: center; gap: 8px; border: 0; background: transparent; color: var(--forest); min-height: 44px; padding: 0; font-size: var(--type-label); }
+.drying-relay-track { display: block; width: 36px; height: 21px; background: #C3CABB; border-radius: 20px; position: relative; flex-shrink: 0; }
+.drying-relay-track::after { content: ''; position: absolute; width: 15px; height: 15px; top: 3px; left: 3px; border-radius: 50%; background: white; }
+.drying-relay-track.is-on { background: var(--forest); }
+.drying-relay-track.is-on::after { transform: translateX(15px); }
+.drying-control-feedback { font-size: var(--type-label) !important; margin: 20px 0 0; color: var(--forest); }
+@media (min-width: 1101px) and (max-width: 1360px) {
+  .dehydration-workspace .drying-telemetry { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .drying-main-grid { grid-template-columns: minmax(0, 1.25fr) minmax(270px, 1fr); }
+}
+@media (max-width: 900px) {
+  .dehydration-workspace .drying-telemetry { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .drying-main-grid, .drying-two-grid { grid-template-columns: minmax(0, 1fr); }
+  .dehydration-workspace .drying-analytics-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .drying-rdt-value { font-size: 2.75rem; }
+}
+@media (max-width: 600px) {
+  .drying-evaluation { grid-template-columns: minmax(0, 1fr); }
+  .dehydration-workspace .drying-telemetry, .dehydration-workspace .drying-analytics-metrics { grid-template-columns: minmax(0, 1fr); }
+  .drying-telemetry .metric-card > p { font-size: var(--type-value); }
+  .drying-relay { flex-wrap: wrap; }
+  .drying-rdt-value { font-size: 2.5rem; }
+}

@@ -1,0 +1,7 @@
+fastapi==0.115.12
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+pillow
+numpy
+tensorflow>=2.16
+scikit-learn
