@@ -1,4 +1,4 @@
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {useQuality} from './QualityProvider';
 import AssetImage from './AssetImage';
 import {Panel} from './QualityUI';
@@ -12,10 +12,10 @@ const resultTime = timestamp => timestamp && Number.isFinite(Date.parse(timestam
 export function ImageClassificationResult({row}) {
  if (!row) return <section className="classifier-latest" aria-label="Latest image analysis"><h3>Latest image result</h3><p>No image classification available. Upload an actual registered sample photograph or load its stored history.</p></section>;
  return <section className="classifier-latest" aria-label="Latest image analysis" aria-live="polite">
-  <h3>Latest image result - {row.sampleId}</h3>
+  <h3>{row.previewOnly ? 'Uploaded photograph result - preview only' : `Latest image result - ${row.sampleId}`}</h3>
   <div className="module02-image-result">
-   <AssetImage src={row.imageUrl} fallback={null} alt={`Image submitted for ${row.sampleId} classification`} className="classifier-result-image" />
-   <div><span className="small-badge">MODEL 01 / STORED IMAGE</span>
+   <AssetImage src={row.imageUrl} fallback={null} alt={row.previewOnly ? 'Uploaded cinnamon photograph for a nonpersistent preview' : `Image submitted for ${row.sampleId} classification`} className="classifier-result-image" />
+   <div><span className="small-badge">{row.previewOnly ? 'MODEL 01 / PHOTO PREVIEW' : 'MODEL 01 / STORED IMAGE'}</span>
     <h4>{row.analysisStatus === 'completed' ? row.predictedCondition : 'Not classified'}</h4>
     <dl className="detail-list">
      <div><dt>Confidence score (uncalibrated model output)</dt><dd>{row.analysisStatus === 'completed' ? scoreText(row.modelScore) : 'Not available'}</dd></div>
@@ -41,7 +41,7 @@ export default function ImageClassifierPanel(){
  const [revision,setRevision]=useState(0);
  const [camera,setCamera]=useState({state:'unchecked',message:'Camera connection has not been checked.'});
  const [latest,setLatest]=useState(null);
- useEffect(()=>{const controller=new AbortController();setModel({state:'loading',message:''});service.status({signal:controller.signal}).then(body=>setModel({state:body.status==='ready'?'ready':'unavailable',version:body.modelVersion,message:'Two-class visual prototype. Scores are not calibrated confidence.'})).catch(failure=>{if(!controller.signal.aborted)setModel({state:'unavailable',message:failure.message});});return()=>controller.abort();},[revision]);
+ useEffect(()=>{const controller=new AbortController();setModel({state:'loading',message:''});service.status({signal:controller.signal}).then(body=>setModel({state:body.status==='ready'?'ready':'unavailable',version:body.modelVersion,previewAvailable:body.previewAvailable===true,message:'Two-class visual prototype. Scores are not calibrated confidence.'})).catch(failure=>{if(!controller.signal.aborted)setModel({state:'unavailable',message:failure.message});});return()=>controller.abort();},[revision]);
  useEffect(()=>{setLatest(null);setFile(null);setError('');setNotice('');if(!demoEnabled&&!illustrative&&selected?.id){setSampleId(selected.id);setActiveId(selected.id);}else{setSampleId('');setActiveId('');setHistory({data:[],pagination:{page:1,pages:0,total:0}});}},[selected?.id,demoEnabled,illustrative]);
  useEffect(()=>{if(!file){setPreview('');return;}const url=URL.createObjectURL(file);setPreview(url);return()=>URL.revokeObjectURL(url);},[file]);
  useEffect(()=>{if(!activeId||demoEnabled)return;const controller=new AbortController();setHistoryBusy(true);setHistory({data:[],pagination:{page:1,pages:0,total:0}});service.history(activeId,1,{signal:controller.signal}).then(body=>{if(!controller.signal.aborted){setHistory(body);setError('');}}).catch(failure=>{if(!controller.signal.aborted)setError(failure.message);}).finally(()=>{if(!controller.signal.aborted)setHistoryBusy(false);});return()=>controller.abort();},[activeId,demoEnabled,revision]);
@@ -73,7 +73,8 @@ export default function ImageClassifierPanel(){
  return <Panel title="Image condition prototype" eyebrow="MODEL 01 / GOOD QUALITY VS SUSPECTED MOLD" badge={model.state==='ready'?'RESEARCH PROTOTYPE':model.state==='loading'?'CHECKING MODEL':'MODEL UNAVAILABLE'} className="classifier-panel">
   <p>Classify the current visible condition of a manually uploaded or ESP32-CAM image. This two-class prototype does not detect physical damage or discoloration, predict future degradation, or confirm mold contamination.</p>
   <p role="status">{model.state==='ready'?`Loaded model: ${model.version}. `:''}{model.message}</p>
-  {demoEnabled||illustrative?<p className="research-note">{illustrative ? 'This illustrative database sample has no captured photograph or image classification. Choose a registered real sample to use Model 01. No image scores are fabricated.' : 'Turn off demo mode to work with actual images. No model scores are fabricated for demonstration samples.'}</p>:<>
+  {model.previewAvailable && !demoEnabled && <LocalPhotoPreview />}
+  {demoEnabled||illustrative?<p className="research-note">{illustrative ? 'This illustrative database sample has no saved photograph or sample-linked classification. Use a real registered sample for saved classifications. The separate local preview, when available above, does not associate its photograph with these sensor records.' : 'Turn off demo mode to work with actual images. No model scores are fabricated for demonstration samples.'}</p>:<>
    <form onSubmit={upload} className="sample-form">
     <fieldset disabled={busy}><legend>Upload an actual sample photograph</legend>
      <div className="form-grid">
@@ -111,4 +112,36 @@ export default function ImageClassifierPanel(){
    </div>
   </>}
  </Panel>;
+}
+
+export function LocalPhotoPreview({api = service}) {
+ const [file,setFile]=useState(null),[url,setUrl]=useState(''),[token,setToken]=useState('');
+ const [result,setResult]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const request=useRef(null);
+ useEffect(()=>()=>request.current?.abort(),[]);
+ useEffect(()=>{setResult(null);if(!file){setUrl('');return;}const objectUrl=URL.createObjectURL(file);setUrl(objectUrl);return()=>URL.revokeObjectURL(objectUrl);},[file]);
+ async function classify(event) {
+  event.preventDefault();setError('');setResult(null);
+  if(!file||!['image/jpeg','image/png'].includes(file.type)||!file.size||file.size>5*1024*1024)return setError('Choose an actual JPEG or PNG photograph no larger than 5 MiB.');
+  if(!token)return setError('Enter your operator token.');
+  const controller=new AbortController();request.current=controller;setBusy(true);
+  try {
+   const row=await api.preview(file,token,{signal:controller.signal});
+   if(row.previewOnly!==true||row.analysisStatus!=='completed')throw new Error('The backend did not return a completed photo preview.');
+   if(!controller.signal.aborted)setResult(row);
+  }catch(failure){if(!controller.signal.aborted)setError(failure.message);}
+  finally{if(!controller.signal.aborted)setBusy(false);}
+ }
+ return <section className="classifier-camera" aria-label="Local photograph preview">
+  <h3>Classify a separate uploaded photograph</h3>
+  <p>Preview only: this photograph is not saved, added to image history, or linked to the selected sensor sample. Its result comes from the existing Model 01 service.</p>
+  <form className="sample-form" onSubmit={classify}><fieldset disabled={busy}><legend>Local PP1 photo preview</legend>
+   <label>Preview operator token<input type="password" autoComplete="off" value={token} onChange={event=>setToken(event.target.value)} required /></label>
+   <label>Photograph for preview<input name="preview-photograph" type="file" accept="image/jpeg,image/png" onChange={event=>{setFile(event.target.files?.[0]||null);setError('');}} required /></label>
+   <button className="button" type="submit">{busy?'Classifying photograph...':'Classify photo without saving'}</button>
+  </fieldset></form>
+  {error&&<p className="form-error" role="alert">{error}</p>}
+  {url&&!result&&<figure className="classifier-preview"><img src={url} alt="Selected photograph awaiting classification"/><figcaption>{file.name} - no classification yet</figcaption></figure>}
+  {result&&<><p role="status">Actual model response. Photo and result are not saved; no sensor-sample association is made.</p><ImageClassificationResult row={{...result,imageUrl:url}} /></>}
+ </section>;
 }

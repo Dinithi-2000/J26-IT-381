@@ -9,7 +9,7 @@ import {createServer} from 'vite';
 import react from '@vitejs/plugin-react';
 import {RISK_DISCLAIMER} from '../src/services/riskPredictionState.js';
 
-let vite, View, QualityProvider, ImagePanel, PredictionsPage, ImageResult, Dashboard, SensorView, SensorHistory;
+let vite, View, QualityProvider, ImagePanel, PredictionsPage, ImageResult, Dashboard, SensorView, SensorHistory, PhotoPreview;
 before(async () => {
   vite = await createServer({root: fileURLToPath(new URL('../', import.meta.url)), configFile: false,
     plugins: [react()], server: {middlewareMode: true, hmr: false}, appType: 'custom'});
@@ -18,6 +18,7 @@ before(async () => {
   ImagePanel = (await vite.ssrLoadModule('/src/components/ImageClassifierPanel.jsx')).default;
   PredictionsPage = (await vite.ssrLoadModule('/src/pages/QualityPredictions.jsx')).default;
   ImageResult = (await vite.ssrLoadModule('/src/components/ImageClassifierPanel.jsx')).ImageClassificationResult;
+  PhotoPreview = (await vite.ssrLoadModule('/src/components/ImageClassifierPanel.jsx')).LocalPhotoPreview;
   Dashboard = (await vite.ssrLoadModule('/src/pages/QualityDashboard.jsx')).default;
   ({Module02SensorView: SensorView, Module02MeasurementHistory: SensorHistory} = await vite.ssrLoadModule('/src/components/Module02SensorPanel.jsx'));
 });
@@ -158,4 +159,18 @@ test('risk view blocks two-sensor captures without environmental inputs and labe
   assert.match(html, /disabled="">Request risk prediction/);
   const resultWithSources = {...result('Low'), inputSources: {storage_day: 'derived_completed_utc_days', weight_g: 'HX711_calibrated_raw_counts'}};
   assert(render({result: resultWithSources}).includes('HX711_calibrated_raw_counts'));
+});
+
+
+test('local photo preview explains no persistence or sample association before requesting a result', () => {
+  const html=renderToStaticMarkup(React.createElement(PhotoPreview));
+  for(const text of ['Classify a separate uploaded photograph','Preview operator token','Photograph for preview','Classify photo without saving','not saved','linked to the selected sensor sample']) assert(html.includes(text),text);
+  assert(!html.includes('83.6%'));assert(!html.includes('good_quality'));
+});
+
+test('actual preview result is visibly unlinked and never invents a sample ID or capture time', () => {
+  const html=renderToStaticMarkup(React.createElement(ImageResult,{row:{previewOnly:true,imageUrl:'blob:test-photo',analysisStatus:'completed',
+    predictedCondition:'good_quality',modelScore:.8355658,analyzedAt:'2026-10-21T00:00:00Z',modelVersion:'test-model',source:'manual_upload'}}));
+  assert(html.includes('Uploaded photograph result - preview only'));assert(html.includes('PHOTO PREVIEW'));assert(html.includes('83.6%'));
+  assert(html.includes('Not available'));assert(!html.includes('undefined'));assert(!html.includes('MODEL 01 / STORED IMAGE'));
 });
