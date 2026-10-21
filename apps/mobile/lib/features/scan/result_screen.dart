@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/database/repositories/sample_repository.dart';
+import '../../core/ml/image_only_config.dart';
 import '../../theme.dart';
 
 class ResultScreen extends ConsumerWidget {
@@ -65,6 +66,8 @@ class ResultScreen extends ConsumerWidget {
           final sample = snapshot.data!;
           final grade = sample.predictedGrade ?? 'Unavailable';
           final isHybrid = sample.modelVersion == 'hybrid_v2';
+          final isImageOnly =
+              sample.modelVersion == ImageOnlyConfig.modelVersion;
           final gradeColor = _getGradeColor(grade);
           final widthMm = sample.diameterMm ?? sample.crossSectionWidthMm;
           final heightMm = sample.crossSectionHeightMm;
@@ -91,16 +94,18 @@ class ResultScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    if (isHybrid)
-                      const Text(
-                        'Experimental Prediction',
-                        style: TextStyle(
+                    if (isHybrid || isImageOnly)
+                      Text(
+                        isImageOnly
+                            ? '4-Class Image-Only Prediction'
+                            : 'Experimental Prediction',
+                        style: const TextStyle(
                           color: AppTheme.primaryGreen,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     Text(
-                      grade.toUpperCase(),
+                      isImageOnly ? grade : grade.toUpperCase(),
                       style: TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.w800,
@@ -131,7 +136,7 @@ class ResultScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      isHybrid
+                      isHybrid || isImageOnly
                           ? 'Prototype prediction from limited training samples. Model probability is not guaranteed correctness or certified grading. Review before use.'
                           : _getGradeDescription(grade),
                       textAlign: TextAlign.center,
