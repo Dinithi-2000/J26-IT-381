@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:drift/drift.dart' as drift;
@@ -7,6 +9,8 @@ import '../database_provider.dart';
 import '../../services/ml_service.dart';
 import '../../ml/hybrid_config.dart';
 import '../../ml/diameter_config.dart';
+import '../../ml/image_only_config.dart';
+import '../../services/image_only_service.dart';
 
 final sampleRepositoryProvider = Provider<SampleRepository>((ref) {
   final db = ref.watch(databaseProvider);
@@ -18,6 +22,122 @@ class SampleRepository {
   final _uuid = const Uuid();
 
   SampleRepository(this._db);
+
+  /// Saves a confirmed image-only prediction without invoking any models.
+  /// Photo files remain caller-owned and must stay available until commit.
+  /// Schema v3 stores the winning probability, not the full probability vector.
+  Future<String> createImageOnlySample(
+    String ownerId,
+    ImageOnlyGradeResult result, {
+    required String sidePhotoLocalPath,
+    required String endPhotoLocalPath,
+    required bool Function() isCurrent,
+    double? diameterMm,
+    DiameterSource? diameterSource,
+    DiameterEstimate? diameterEstimate,
+  }) => _db.transaction(() async {
+    if (!isCurrent()) throw StateError('Capture cancelled.');
+
+    // Snapshot and validate even externally implemented result objects before
+    // any asynchronous work. Never infer label order from map insertion order.
+    final grade = result.predictedGrade;
+    final confidence = result.confidence;
+    final version = result.modelVersion;
+    final probabilities = Map<String, double>.of(result.probabilities);
+    if (ownerId.trim().isEmpty ||
+        version != ImageOnlyConfig.modelVersion ||
+        !ImageOnlyConfig.classes.contains(grade) ||
+        probabilities.length != ImageOnlyConfig.classes.length ||
+        !ImageOnlyConfig.classes.every(probabilities.containsKey)) {
+      throw const ImageOnlyException(
+        'Cannot save an invalid image-only record.',
+      );
+    }
+    final validated = ImageOnlyGradeResult.fromOutput([
+      for (final label in ImageOnlyConfig.classes) probabilities[label]!,
+    ]);
+    if (!confidence.isFinite ||
+        confidence != validated.confidence ||
+        grade != validated.predictedGrade) {
+      throw const ImageOnlyException(
+        'Image-only grade or confidence does not match its probabilities.',
+      );
+    }
+
+    final estimatedMm = diameterEstimate?.diameterMm;
+    final diameterVersion = diameterEstimate?.modelVersion;
+    if (diameterMm == null) {
+      if (diameterSource != null || diameterEstimate != null) {
+        throw const ImageOnlyException(
+          'Diameter provenance requires a supplied diameter.',
+        );
+      }
+    } else if (HybridConfig.diameterError(diameterMm) != null ||
+        diameterSource == null ||
+        (diameterEstimate != null &&
+            (HybridConfig.diameterError(estimatedMm) != null ||
+                diameterVersion != 'diameter_v1')) ||
+        (diameterSource == DiameterSource.aiEstimated &&
+            (diameterEstimate == null || diameterMm != estimatedMm))) {
+      throw const ImageOnlyException(
+        'Diameter source does not match the supplied measurement or estimate.',
+      );
+    }
+
+    for (final path in [sidePhotoLocalPath, endPhotoLocalPath]) {
+      if (path.trim().isEmpty) {
+        throw const ImageOnlyException(
+          'Both existing photo paths are required.',
+        );
+      }
+      try {
+        final stat = await File(path).stat();
+        if (stat.type != FileSystemEntityType.file || stat.size <= 0) {
+          throw const ImageOnlyException(
+            'A required photo is missing or empty.',
+          );
+        }
+      } on FileSystemException {
+        throw const ImageOnlyException('A required photo is unavailable.');
+      }
+    }
+    if (!isCurrent()) throw StateError('Capture cancelled.');
+    final id = _uuid.v4();
+    await _db
+        .into(_db.samples)
+        .insert(
+          SamplesCompanion.insert(
+            id: id,
+            ownerId: ownerId,
+            // UUID suffix avoids same-millisecond display ID collisions on saves.
+            sampleId: 'SMP-$id',
+            captureTimestamp: DateTime.now(),
+            predictedGrade: drift.Value(grade),
+            modelProbability: drift.Value(confidence),
+            modelVersion: drift.Value(version),
+            sidePhotoLocalPath: drift.Value(sidePhotoLocalPath),
+            endPhotoLocalPath: drift.Value(endPhotoLocalPath),
+            diameterMm: drift.Value(diameterMm),
+            diameterSource: drift.Value(diameterSource?.databaseValue),
+            diameterModelVersion: drift.Value(diameterVersion),
+            estimatedDiameterMm: drift.Value(estimatedMm),
+            measuredDiameterMm: drift.Value(
+              diameterSource == DiameterSource.caliperMeasured
+                  ? diameterMm
+                  : null,
+            ),
+            measurementMethod: drift.Value(switch (diameterSource) {
+              null => null,
+              DiameterSource.caliperMeasured => 'digital_caliper_manual',
+              DiameterSource.aiEstimated => 'experimental_image_regression',
+            }),
+            needsReview: const drift.Value(true),
+            isSynced: const drift.Value(false),
+          ),
+        );
+    if (!isCurrent()) throw StateError('Capture cancelled.');
+    return id;
+  });
 
   /// Called only after the user confirms a completed experimental prediction.
   Future<String> createHybridSample(
