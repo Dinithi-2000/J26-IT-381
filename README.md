@@ -70,13 +70,19 @@ See `ml-service/README.md` and `ml-service/.env.example` for the existing price-
 | Route | Page |
 | --- | --- |
 | `/` | Branded research homepage, workflow, technology, objectives and team |
-| `/module-01` | Adaptive dehydration overview; no active equipment controls |
+| `/module-01` | Adaptive dehydration workspace: telemetry, RDT, process trends and events |
+| `/module-01/sessions` | Drying experiment history |
+| `/module-01/sessions/:batchId` | Session conditions, weight, estimated moisture, RDT and relay history |
+| `/module-01/rdt` | Experimental RDT inputs, prediction availability and evaluation placeholders |
+| `/module-01/analytics` | Recorded drying trends and batch comparison |
+| `/module-01/controls` | Offline settings and explicitly simulated demo relay controls |
 | `/module-02` | Stored-quality overview and measurement trends |
 | `/module-02/samples` | Sample list and local demo registration |
 | `/module-02/samples/:id` | Sample details, measurements and image history |
 | `/module-02/images` | Baseline/current image interface and screening availability |
 | `/module-02/predictions` | Model status, planning horizon and future output structure |
-| `/module-03` | Offline mobile edge grading overview; no web classifier |
+| `/module-03` | QuillGrade mobile edge grading dashboard: summary metrics, distribution charts, results table, and sample details |
+| `/grading` | Alias routing directly to the QuillGrade grading dashboard |
 | `/module-04` | Preserved price dashboard with planned GIS/yield wrapper |
 
 Unknown routes show a not-found page. Sample IDs absent from the current session show a sample-not-found state after enabling demo data.
@@ -114,7 +120,7 @@ Registration is an in-memory demonstration workflow, not a database write. New s
 - `client/src/pages/QualityDashboard.jsx`: quality overview, sensor metrics, color, environmental trends and unavailable risk outputs.
 - `client/src/pages/SampleManagement.jsx`, `SampleDetails.jsx`: demo registration and sample/history views.
 - `client/src/pages/ImageAnalysis.jsx`, `QualityPredictions.jsx`: dedicated image and prediction workspaces.
-- `client/src/pages/Placeholder.jsx`: Module 01/03 integration-ready overviews.
+- `client/src/pages/Placeholder.jsx`: preserved overview component, still used by Module 03.
 - `client/src/pages/ForecastingModule.jsx`: extensible Module 04 wrapper.
 - `client/src/pages/PriceDashboard.jsx`, `price-dashboard.css`: original price interface extracted and scoped during initial Phase 1; no behavior changes in the revised implementation.
 - `client/src/data/modules.js`, `demoQuality.js`: official module configuration and explicitly synthetic fixtures.
@@ -207,3 +213,55 @@ The existing layout and botanical palette are retained. Text now uses a shared r
 - These are targeted rendered contrast/layout checks, not a claim of a complete WCAG conformance certification. Photographic backgrounds received additional solid text backdrops and visual review. Real end-to-end price predictions still require MongoDB and the existing ML service.
 
 Only task-owned temporary browser profiles and QA artifacts were removed when disk space prevented saving audit screenshots/reports. Unrelated files were not removed.
+
+## Module 01 dehydration research workspace
+
+Module 01 now follows the existing Module 02 workspace structure and design system. The shared website header, footer, homepage workflow, other modules, server and ML services are preserved. No UI or chart dependency was added.
+
+- `DehydrationLayout.jsx`: dehydration navigation, accessible mobile drawer, hardware availability and explicit demo opt-in.
+- `DehydrationProvider.jsx`: session-scoped demo selection, isolated fixtures, simulated controls and cancellable read-only integration state.
+- `DehydrationUI.jsx`: reusable telemetry, prediction, control status, charts, process information and event panels. Charts include optional exact-value tables and elapsed-time axes.
+- `DehydrationDashboard.jsx`, `DryingSessions.jsx`, `DehydrationPrediction.jsx`, `DryingAnalytics.jsx`, `ChamberControls.jsx`: the five workspace views and session details.
+- `demoDehydration.js`: explicitly synthetic, static experiments. Durations use seconds, weights grams, moisture percent and ISO timestamps rendered in Asia/Colombo (SLST).
+- `dehydrationService.js`: an unconfigured, read-only adapter contract that returns no data and makes no network requests. A future adapter can be injected into `DehydrationProvider`; no backend endpoint or hardware command API is assumed.
+- `styles/dehydration.css`: Module 01 additions using existing fonts, tokens, panels and sidebar primitives.
+
+Demo data starts disabled on every mount or refresh. Enabling it displays synthetic snapshots, example experiment histories and a fixed simulated RDT. Disabling it clears readings and demo control events; leaving Module 01 resets the session. Hardware remains explicitly not connected in both modes. There is no running RDT model, model confidence or experimental evaluation result; MAE, RMSE and R² remain unavailable.
+
+Controls send no hardware commands. Offline settings are disabled; demo relay switches require Manual mode. A simulated maximum-temperature interlock turns the demo heater OFF and disables its switch when the sample temperature reaches the selected maximum. Demo target changes update the progress and target-weight display, but do not recalculate the fixed illustrative RDT or fabricate new sensor observations. Target weight uses the demo dry-mass baseline; this is not calibrated moisture measurement.
+
+### Module 01 verification
+
+- `npm.cmd run build` passed with no added dependency.
+- 85 browser layout/state checks passed across 320, 390, 768, 1100 and 1440 px, including direct route loads, session detail/not-found views, demo/offline states, desktop sidebar collapse and Module 02 regression checks. No page-level horizontal overflow was detected.
+- Interaction checks passed for demo opt-in/out/reset on refresh, all sidebar destinations, session detail navigation, chart signal selection and exact-value disclosures, Manual/Automatic demo modes, relay toggles, simulated temperature protection, mobile drawer focus trapping/Escape/focus restoration, keyboard demo selection and the homepage workflow link.
+- Adapter/fixture consistency checks passed: the default adapter returns no data; historical endpoints agree with telemetry/session values; duration formatting handles unavailable data.
+- Desktop/mobile screenshots were reviewed. No application console errors or uncaught exceptions were observed, and no hardware/API requests were made. The pre-existing global `/favicon.ico` request returns 404; shared branding/metadata files were not changed.
+- Module 02 components/styles, the shared header/footer, other research modules and backend/ML sources are unchanged. Actual hardware commands and model inference cannot be tested because neither integration is configured.
+
+## Module 03 QuillGrade mobile edge AI grading dashboard
+
+Module 03 now features a dedicated, responsive Grading dashboard using the botanical design system tokens. It provides summary cards, grade distribution charts, a multi-column grading results table with search, sorting, and filtering, and an accessible sample details modal showing side and end photographs.
+
+- `GradingLayout.jsx`: Module 03 layout shell with collapsible sidebar, accessible mobile drawer, on-device mobile AI status panel, topbar breadcrumbs, and explicit demo opt-in control.
+- `GradingProvider.jsx`: Session-scoped grading state provider with dynamic statistical derivation from loaded records (total, grade distribution, average AI confidence, recent counts) and an integration boundary for remote sync.
+- `GradingDashboard.jsx`: Modern, responsive dashboard containing:
+  - 4 summary cards: Total Graded Samples, Grade Distribution, Average AI Confidence, and Recently Graded Samples.
+  - Interactive SVG/CSS Grade Distribution Chart supporting both the New model (`ALBA`, `C4`, `C5`, `Special`) and Legacy model (`EXTRA`, `H1`, `H2`, `M4`) vocabularies, with distinct `★ Special` styling and vocabulary filter tabs.
+  - Interactive toolbar with Sample ID search, grade filter, date filter (Today, 7 days, 30 days, All), and sort options (newest/oldest, confidence, diameter).
+  - 9-column results table: Sample ID, Predicted Grade, Confidence (%), Diameter (mm), Diameter Source (`AI`, `Caliper`, `Not Available`), Model Version, Date and Time (SLST), Sync Status (`Synced`, `Pending`, `Local Only`), and View Details action.
+  - Accessible sample details modal displaying complete metadata and side/end photograph previews (with graceful placeholders when photos are unavailable).
+  - Meaningful empty, disconnected, loading, and error states with a direct "Explore demo data →" action.
+- `gradingService.js`: Unconfigured read-only integration boundary for `/api/grading` or mobile sync adapters, returning disconnected/empty states by default without fabricating backend data.
+- `demoGrading.js`: Clearly synthetic, illustrative evaluation records spanning both vocabularies for UI exploration when demo mode is explicitly enabled.
+- `styles/grading.css`: Scoped stylesheet implementing botanical design tokens (`--forest`, `--cinnamon`, `--cream`, `--sage`, `--charcoal`) and responsive mobile/tablet breakpoints.
+
+### Module 03 verification
+
+- `npm run build` passed with zero errors and zero added dependencies.
+- Browser checks verified the default un-synced empty state (cards show 0/—, chart shows empty state, table shows sync-pending guidance).
+- Enabling demo mode correctly derived all summary statistics (12 samples, 90.5% average confidence, ALBA 25% share, 11 recent evaluations).
+- Grade distribution chart rendered with distinct `★ Special` styling and smooth vocabulary tab toggling.
+- Table filtering by grade (`Special`), Sample ID search (`002`), sorting, and "—" placeholders for missing values were verified.
+- Sample details modal opened and closed cleanly, displaying metadata and side/end photos.
+
