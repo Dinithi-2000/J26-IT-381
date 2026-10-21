@@ -17,8 +17,8 @@ export const modules = [
     id: '03', title: 'Mobile-Based Edge AI for Cinnamon Grading',
     short: 'Mobile edge grading', icon: '◇', stage: 'Grade in the field',
     description: 'Support offline smartphone research into quill grade classification and thickness estimation.',
-    status: 'Mobile research overview',
-    features: ['Cinnamon quill grade classification', 'Thickness estimation in millimeters', 'Image-based analysis', 'On-device AI inference', 'Offline smartphone operation', 'Future grading history & synchronization'],
+    status: 'QuillGrade dashboard with optional demo data',
+    features: ['Cinnamon quill grade classification', 'Thickness estimation in millimeters', 'Image-based analysis', 'On-device AI inference', 'Offline smartphone operation', 'Field grading history & synchronization'],
   },
   {
     id: '04', title: 'GIS-Based Yield and Market Value Forecasting',
