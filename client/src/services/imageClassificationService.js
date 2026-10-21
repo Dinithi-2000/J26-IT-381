@@ -8,6 +8,8 @@ export async function imageRequest(path,{signal,method='GET',file,token}={}) {
  return body;
 }
 export const imageClassificationService={
+ cameraStatus:token=>imageRequest('/camera/status',{token}),
+ capture:(sampleId,token)=>imageRequest(`/camera?sampleId=${encodeURIComponent(sampleId)}`,{method:'POST',token}),
  status:options=>imageRequest('/status',options),
  history:(sampleId,page=1,options)=>imageRequest(`/history?sampleId=${encodeURIComponent(sampleId)}&page=${page}&limit=12`,options),
  upload:(sampleId,file,token)=>imageRequest(`/images?sampleId=${encodeURIComponent(sampleId)}`,{method:'POST',file,token}),

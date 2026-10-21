@@ -1,3 +1,5 @@
+> Updated integration for your supplied Colab model and camera-pull workflow: [ESP32_CAM_INTEGRATION.md](ESP32_CAM_INTEGRATION.md). The current service defaults to `.keras` plus `class_names.json` rather than the earlier evaluated-artifact directory; that directory mode remains optional. New images require a registered active sample. Do not retrain merely to use the supplied model.
+
 # CinnaSense AI Module 02: image-condition prototype
 
 Research title: Smart Dehydration and Quality Preservation System for Cinnamon Processing.

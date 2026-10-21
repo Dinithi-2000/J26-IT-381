@@ -14,15 +14,15 @@ export default function ImageAnalysis() {
       <p>{demoEnabled ? 'Demo references are illustrations and cannot assess sample quality.' : 'Stored photographs are supplied by authenticated uploads. Use the separate Model 01 panel above for image-condition classification.'}</p>
     </Panel>
     <div className="quality-grid hardware-panel">
-      <Panel title="Visible defect screening" eyebrow="COMPUTER VISION">
-        <div className="defect-empty"><span><Icon name="camera" size={32} /></span><strong>Image analysis not connected</strong>
-          <p>No discoloration, surface defect, or suspected growth result has been generated.</p></div>
-        <p>Planned workflow: capture a standardized image, associate it with a sample, run a validated model, and review suspected visual defects.</p>
+      <Panel title="Additional defect screening" eyebrow="OUTSIDE THE TWO-CLASS MODEL">
+        <div className="defect-empty"><span><Icon name="camera" size={32} /></span><strong>Discoloration and damage screening unavailable</strong>
+          <p>Model 01 reports the current two-class image condition in the panel above. It does not separately classify discoloration or physical damage.</p></div>
+        <p>Keep capture lighting and backgrounds consistent. Additional defect categories require appropriately labeled data and their own evaluation.</p>
       </Panel>
       <Panel title="A suspicion is not a confirmation." eyebrow="INTERPRETING FUTURE RESULTS" className="risk-panel">
         <p>Future visual screening may flag suspected fungal growth. An image-based suspicion must remain distinct from confirmed fungal contamination.</p>
-        <dl className="detail-list"><div><dt>Visual defect result</dt><dd>Unavailable</dd></div>
-          <div><dt>Suspected fungal growth</dt><dd>Not assessed</dd></div>
+        <dl className="detail-list"><div><dt>Current model output</dt><dd>See the Model 01 result above</dd></div>
+          <div><dt>Visual label interpretation</dt><dd>Research screening only</dd></div>
           <div><dt>Confirmed fungal contamination</dt><dd>No confirmation data</dd></div></dl>
       </Panel>
     </div>

@@ -12,7 +12,7 @@ export function createQualityService({ baseUrl = '/api', fetcher = globalThis.fe
     return result;
   }
   const path = id => `/module-02/samples/${encodeURIComponent(id)}`;
-  const normalize = sample => ({...sample,id:sample.sampleId,initialWeight:sample.initialWeightGrams,storageStartDate:String(sample.storageStartDate ?? '').slice(0,10),records:[],images:[],predictions:[],deviceStatus:{status:'offline'},detailsLoaded:false});
+  const normalize = sample => ({...sample,id:sample.sampleId,initialWeight:sample.initialWeightGrams,storageStartTimestamp:sample.storageStartDate,storageStartDate:String(sample.storageStartDate ?? '').slice(0,10),records:[],images:[],predictions:[],deviceStatus:{status:'offline'},detailsLoaded:false});
   return {
     async getSamples(options) {
       // Sample summaries are paginated; obtain all pages without fetching sensor histories for every sample.
@@ -37,6 +37,8 @@ export function createQualityService({ baseUrl = '/api', fetcher = globalThis.fe
     getMeasurements: (id,options) => request(`${path(id)}/readings?limit=200`,options),
     getImages: (id,options) => request(`${path(id)}/images?limit=200`,options),
     getPredictions: (id,options) => request(`${path(id)}/predictions?limit=200`,options),
+    createRiskPrediction: (sampleId,readingId,token,options={}) => request('/module-02/risk-predictions',{...options,method:'POST',token,body:{sampleId,readingId}}),
+    getRiskPredictions: (id,token,page=1,options={}) => request(`${path(id)}/risk-predictions?page=${page}&limit=12`,{...options,token}),
   };
 }
 export const qualityService = createQualityService();

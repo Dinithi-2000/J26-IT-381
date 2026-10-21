@@ -1,0 +1,71 @@
+[
+  {
+    "id": "earlier-integrated-model01",
+    "model_version": "model01-mobilenetv2-20261020-0219",
+    "weights": "ml-module02/original-model01/nested-classifier-branch-9de8efc/ml-service/models/quality_model01/cinnasense_model01_mobilenetv2.keras",
+    "sha256": "a0b2b616b8f37299c8688f0e9490a3e7bbc51d039e98e77554195beada1d283d",
+    "bytes": 9628687,
+    "labels": [
+      "Good_quality",
+      "Suspected_Mold"
+    ],
+    "labels_file": "ml-module02/original-model01/nested-classifier-branch-9de8efc/ml-service/models/quality_model01/labels.json",
+    "metadata_file": "ml-module02/original-model01/nested-classifier-branch-9de8efc/ml-service/models/quality_model01/model_metadata.json",
+    "preprocessing": {
+      "exif_transpose": true,
+      "max_side_before_resize": 640,
+      "jpeg_quality": 95,
+      "resize_mode": "pad",
+      "antialias": true
+    },
+    "input_contract": "RGB float32 pixel values 0-255, shape (batch, 224, 224, 3); scaling to [-1, 1] is inside the model",
+    "active": false
+  },
+  {
+    "id": "camera-controlled-model01",
+    "model_version": "model01-mobilenetv2-20261020-1055",
+    "weights": "ml-module02/original-model01/parent-camera-classifier-d6179c3/ml-service/models/quality_model01/cinnasense_model01_mobilenetv2.keras",
+    "sha256": "47a4cb3916a5ef88b3bcc08428ae308a889426a444bffd4ede4aee1ddb680575",
+    "bytes": 24389658,
+    "labels": [
+      "Good_quality",
+      "Suspected_Mold"
+    ],
+    "labels_file": "ml-module02/original-model01/parent-camera-classifier-d6179c3/ml-service/models/quality_model01/labels.json",
+    "metadata_file": "ml-module02/original-model01/parent-camera-classifier-d6179c3/ml-service/models/quality_model01/model_metadata.json",
+    "preprocessing": {
+      "exif_transpose": true,
+      "max_side_before_resize": 640,
+      "jpeg_quality": 95,
+      "resize_mode": "pad",
+      "antialias": true
+    },
+    "input_contract": "RGB float32 pixel values 0-255, shape (batch, 224, 224, 3); scaling to [-1, 1] is inside the model",
+    "active": false
+  },
+  {
+    "id": "current-active-colab-model01",
+    "weights": "ml-module02/models/cinnamon_quality_mobilenetv2.keras",
+    "sha256": "5ef47ee59f34eb447f0a022c45a453f51b2401ec12c951f7a0150abd38ae6c80",
+    "bytes": 9659605,
+    "labels": [
+      "Suspected Mold",
+      "good_quality"
+    ],
+    "labels_file": "ml-module02/models/class_names.json",
+    "input_contract": "RGB float32 raw 0-255, 224x224 bilinear resize, embedded normalization; use current cinnasense_quality service.",
+    "active": true
+  },
+  {
+    "id": "original-standalone-model01",
+    "expected_weights": "quality-service/models/cinnamon_condition_mobilenetv2.keras",
+    "weight_status": "NOT_FOUND_IN_EITHER_REPOSITORY_OR_RECOVERED_STASH",
+    "source": "ml-module02/original-model01/nested-standalone-stash-e8777c1/quality-service",
+    "labels": [
+      "Good_quality",
+      "Suspected_Mold"
+    ],
+    "active": false,
+    "note": "Do not substitute another artifact solely because labels match."
+  }
+]
