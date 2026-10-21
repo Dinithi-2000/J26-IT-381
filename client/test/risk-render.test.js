@@ -123,8 +123,9 @@ test('unified Module 02 overview retains both models and registration guidance w
   const html = renderToStaticMarkup(React.createElement(MemoryRouter, null,
     React.createElement(QualityProvider, null, React.createElement(Dashboard))));
   for (const text of ['Unified Model 01 and Model 02 outputs', 'Image condition prototype',
-    'Storage Deterioration Risk', 'SYNTHETIC_DEMO', 'Explore presentation demo', 'No registered sample selected']) assert(html.includes(text), text);
-  assert(html.includes('aria-pressed="false"')); assert(!html.includes('83.6%'));
+    'Storage Deterioration Risk', 'SYNTHETIC_DEMO', 'Quality monitoring', 'No registered sample selected']) assert(html.includes(text), text);
+  for (const text of ['Explore presentation demo', 'PRESENTATION DEMO', 'Stored Sample Records', 'PP1']) assert(!html.includes(text), text);
+  assert(!html.includes('83.6%'));
 });
 
 

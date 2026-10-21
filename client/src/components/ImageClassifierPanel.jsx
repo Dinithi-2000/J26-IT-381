@@ -135,7 +135,7 @@ export function LocalPhotoPreview({api = service}) {
  return <section className="classifier-camera" aria-label="Local photograph preview">
   <h3>Classify a separate uploaded photograph</h3>
   <p>Preview only: this photograph is not saved, added to image history, or linked to the selected sensor sample. Its result comes from the existing Model 01 service.</p>
-  <form className="sample-form" onSubmit={classify}><fieldset disabled={busy}><legend>Local PP1 photo preview</legend>
+  <form className="sample-form" onSubmit={classify}><fieldset disabled={busy}><legend>Image classification preview</legend>
    <label>Preview operator token<input type="password" autoComplete="off" value={token} onChange={event=>setToken(event.target.value)} required /></label>
    <label>Photograph for preview<input name="preview-photograph" type="file" accept="image/jpeg,image/png" onChange={event=>{setFile(event.target.files?.[0]||null);setError('');}} required /></label>
    <button className="button" type="submit">{busy?'Classifying photograph...':'Classify photo without saving'}</button>

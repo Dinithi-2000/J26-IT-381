@@ -1,15 +1,13 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { demoSamples } from '../data/demoQuality';
 import { qualityService } from '../services/qualityService';
 
 const QualityContext = createContext(null);
 
 export function QualityProvider({ children, service = qualityService }) {
-  // Explicit opt-in for this mounted session. Never enable demo mode implicitly.
-  const [demoEnabled, setDemoEnabled] = useState(false);
-  const [localSamples, setLocalSamples] = useState(demoSamples);
+  // Operational dashboard: use stored backend records only.
+  const demoEnabled = false;
   const [remote, setRemote] = useState({ status: 'loading', samples: [], error: '' });
-  const [selectedId, setSelectedId] = useState(demoSamples[0].id);
+  const [selectedId, setSelectedId] = useState('');
   const [revision, setRevision] = useState(0);
   const [detailState, setDetailState] = useState({status:'idle',error:''});
   const [clock, setClock] = useState(Date.now());
@@ -34,7 +32,7 @@ export function QualityProvider({ children, service = qualityService }) {
     return () => controller.abort();
   }, [demoEnabled, revision, service]);
 
-  const samples = demoEnabled ? localSamples : remote.samples;
+  const samples = remote.samples;
   const selected = samples.find(sample => sample.id === selectedId) || samples[0] || null;
 
   const activeId = selected?.id;
@@ -55,23 +53,14 @@ export function QualityProvider({ children, service = qualityService }) {
   const deviceStatus = demoEnabled ? 'Demo - no live device' : selected?.dataOrigin === 'DEMO_DATA' ? 'Stored illustrative records - hardware not connected' : readingTime && clock-Date.parse(readingTime)<=threshold*1000 ? 'Recent telemetry - not a live stream' : 'Offline - no recent telemetry';
 
   async function registerSample(input, token) {
-    if(!demoEnabled) {
-      const sample = await service.createSample(input,token);
-      setRemote(previous=>({...previous,status:'ready',samples:[...previous.samples,sample]}));
-      setSelectedId(sample.id); return sample;
-    }
-
-    if (localSamples.some(sample => sample.id.toLowerCase() === input.id.toLowerCase())) {
-      throw new Error('A sample with this ID already exists.');
-    }
-    const sample = { ...input, records: [], images: [] };
-    setLocalSamples(previous => [...previous, sample]);
+    const sample = await service.createSample(input,token);
+    setRemote(previous=>({...previous,status:'ready',samples:[...previous.samples,sample]}));
     setSelectedId(sample.id);
     return sample;
   }
 
   return <QualityContext.Provider value={{
-    demoEnabled, setDemoEnabled, samples, selected, setSelectedId,
+    demoEnabled, samples, selected, setSelectedId,
     status: demoEnabled ? 'demo' : remote.status === 'ready' && detailState.status === 'error' ? 'error' : remote.status === 'ready' && detailState.status === 'loading' ? 'loading' : remote.status,
     deviceStatus, detailLoading: !demoEnabled && detailState.status === 'loading',
     error: remote.error || detailState.error, registerSample, refresh: () => setRevision(value => value + 1),

@@ -24,8 +24,8 @@ export function DataState() {
   if (status === 'demo' || status === 'ready') return null;
   const content = {
     loading: ['Checking data availability', 'Please wait while the frontend checks its configured data source.'],
-    disconnected: ['Your research workspace is ready.', 'The quality backend could not be reached. Start the backend, check its database connection, or explicitly enable demonstration mode.'],
-    empty: ['No samples available', 'The configured data source returned an empty sample list.'],
+    disconnected: ['Quality service unavailable', 'The quality backend could not be reached. Check the backend and its Atlas connection.'],
+    empty: ['No monitoring records yet', 'Register cinnamon to start tracking storage quality. Measurements appear when sensor readings are received.'],
     error: ['Unable to load quality data', error || 'The data source could not be read. Try again.'],
   }[status];
   return <section className={`panel data-state state-${status}`} role="status" aria-live="polite" aria-busy={status === 'loading'}>
@@ -39,14 +39,14 @@ export function SampleSelector() {
   const { samples, selected, setSelectedId, demoEnabled } = useQuality();
   if (!selected) return null;
   return <section className="sample-toolbar" aria-label="Sample selection">
-    <label htmlFor="quality-sample"><span><Icon name="sample" size={15} /> Cinnamon sample ID</span>
+    <label htmlFor="quality-sample"><span><Icon name="sample" size={15} /> Cinnamon ID</span>
       <select id="quality-sample" value={selected.id} onChange={event => setSelectedId(event.target.value)}>
         {samples.map(sample => <option key={sample.id}>{sample.id}</option>)}
       </select>
     </label>
     <div><span>Batch ID</span><strong>{selected.batchId}</strong></div>
     <div><span>Storage setting{demoEnabled ? ' · demo' : ''}</span><strong>{selected.storage}</strong></div>
-    <div><span>Sample record</span><Link className="inline-link" to={`/module-02/samples/${encodeURIComponent(selected.id)}`}>View sample details <Icon name="external" size={14} /></Link></div>
+    <div><span>Cinnamon record</span><Link className="inline-link" to={`/module-02/samples/${encodeURIComponent(selected.id)}`}>View details <Icon name="external" size={14} /></Link></div>
   </section>;
 }
 

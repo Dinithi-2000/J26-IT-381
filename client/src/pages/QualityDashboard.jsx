@@ -17,7 +17,7 @@ const measurements = {
   color: { label: 'RGB color', series: ['Red', 'Green', 'Blue'].map((name, index) => ({ name, color: ['#AD6652', '#426B53', '#527F9A'][index], read: record => record.rgb[index] })) },
 };
 export default function QualityDashboard() {
-  const { selected: sample, samples, demoEnabled, setDemoEnabled, deviceStatus, status, refresh } = useQuality();
+  const { selected: sample, samples, demoEnabled, deviceStatus, status, refresh } = useQuality();
   const [metric, setMetric] = useState('weight');
   const current = sample?.records.at(-1), baseline = sample?.baselineRecord || sample?.records[0];
   const change = sample && Number.isFinite(current?.weight) ? weightChange(sample) : null;
@@ -26,14 +26,11 @@ export default function QualityDashboard() {
   return <>
     <DataState />
     <section className="module02-workspace-intro" aria-label="Module 02 model workspace">
-      <div><p className="eyebrow">MODULE 02 / STORED CINNAMON QUALITY</p><h2>Stored Sample Records</h2>
+      <div><p className="eyebrow">MODULE 02 / STORED CINNAMON QUALITY</p><h2>Quality monitoring</h2>
         <p>Review image condition alongside stored sensor measurements and synthetic deterioration risk. Each result keeps its own timestamp and provenance.</p></div>
       <button className="button secondary" type="button" disabled={status === 'loading'} onClick={refresh}>Refresh stored records</button>
-      <p>{samples.length} registered samples · Selected: {sample?.id || 'None'}</p>
-      {!demoEnabled && sample?.dataOrigin === 'DEMO_DATA' && <p className="module02-demo-note" role="note"><strong>Illustrative Records</strong> — saved MongoDB presentation fixtures, not physical sensor measurements. Model results are requested separately from the actual Python service.</p>}
-      <button className="button secondary" type="button" aria-pressed={demoEnabled} onClick={() => setDemoEnabled(!demoEnabled)}>{demoEnabled ? 'Exit presentation demo' : 'Explore presentation demo'}</button>
-      {demoEnabled && <p className="module02-demo-note" role="note"><strong>PRESENTATION DEMO — synthetic measurements and illustrative images.</strong> No AI results or confidence scores are fabricated. Model requests are disabled for demo samples.</p>}
-      {!sample && status !== 'loading' && <p>No sample is selected. <Link className="inline-link" to="/module-02/samples">Register a real sample in the sample library</Link>, or explore the explicitly labeled presentation demo. Registration alone does not create measurements.</p>}
+      <p>{samples.length} registered records{sample ? ` · Selected: ${sample.id}` : ''}</p>
+      {!sample && status !== 'loading' && <p>No cinnamon record is selected. <Link className="inline-link" to="/module-02/samples">Register cinnamon for monitoring</Link>. Measurements appear after sensor readings are received.</p>}
     </section>
     <SampleSelector />
     <Module02SensorPanel />
@@ -48,7 +45,7 @@ export default function QualityDashboard() {
         <div><span>Latest {demoEnabled ? 'demo ' : ''}measurement</span><strong>{formatTimestamp(current?.timestamp)}</strong></div>
         <div><span>Storage started</span><strong>{sample.storageStartDate}</strong></div>
       </div>
-      <div className="dashboard-section-heading"><div><p className="eyebrow">THE SAMPLE AT A GLANCE</p><h2>Storage Quality Trends</h2></div><span className={`data-badge ${demoEnabled ? 'demo' : 'neutral'}`}>{historyLabel}</span></div>
+      <div className="dashboard-section-heading"><div><p className="eyebrow">STORAGE AT A GLANCE</p><h2>Storage Quality Trends</h2></div><span className={`data-badge ${demoEnabled ? 'demo' : 'neutral'}`}>{historyLabel}</span></div>
       <section className="metrics-grid" aria-label={`${demoEnabled ? 'DEMO DATA: ' : ''}sample measurements`}>
         <Metric label="Storage duration" value={current?.day} unit="days" note="At the latest measurement" symbol="clock" />
         <Metric label="Current weight" value={current?.weight?.toFixed(1)} unit="g" note={Number.isFinite(sample.initialWeight) ? `Initial weight: ${sample.initialWeight} g` : 'Initial weight not recorded'} symbol="scale" />
@@ -58,7 +55,7 @@ export default function QualityDashboard() {
         <Metric label="Gas resistance" value={current?.gasResistanceOhms?.toLocaleString()} unit="Ω" note="BME688 · not aroma concentration" symbol="wind" />
       </section>
       <div className="quality-grid">
-        <Panel title="How the sample changes" eyebrow="MEASUREMENT HISTORY" badge={demoEnabled ? 'DEMO DATA' : 'HISTORICAL'} className="primary-trend-panel">
+        <Panel title="Quality changes over time" eyebrow="MEASUREMENT HISTORY" badge={demoEnabled ? 'DEMO DATA' : 'HISTORICAL'} className="primary-trend-panel">
           <div className="chart-tabs" role="group" aria-label="Trend measurement">{Object.entries(measurements).map(([key, value]) => <button key={key} aria-pressed={metric === key} onClick={() => setMetric(key)}>{value.label}</button>)}</div>
           <TrendChart records={sample.records} series={measurement.series} label={`${demoEnabled ? 'DEMO DATA: ' : ''}${measurement.label} history for ${sample.id}`} />
           <div className="chart-footnote"><span><span className="connection-dot neutral" />{sample.records.length} historical observations</span><a href="#measurement-history">View records ↓</a></div>

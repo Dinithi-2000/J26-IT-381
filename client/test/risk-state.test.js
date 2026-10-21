@@ -148,11 +148,10 @@ test('stored illustrative history permits a presentation request without represe
   assert.equal(readingCondition({...capture, dataOrigin:'REAL_SENSOR'}, {}, Date.parse('2026-10-23T00:00:00Z')).stale, true);
 });
 
-test('database-backed illustrative samples preserve provenance and sort deterministically without altering research order', async () => {
-  const rows = [{sampleId:'PP1-003',dataOrigin:'DEMO_DATA'}, {sampleId:'PP1-001',dataOrigin:'DEMO_DATA'}];
+test('dashboard excludes illustrative records and keeps genuine records in backend order', async () => {
+  const rows = [{sampleId:'CIN-PP1-003',dataOrigin:'DEMO_DATA'}, {sampleId:'CIN-PP1-001',dataOrigin:'DEMO_DATA'},
+    {sampleId:'CIN003',dataOrigin:'REAL_SENSOR'}, {sampleId:'CIN001'}, {sampleId:'CIN-DEMO-001'}];
   const service = createQualityService({fetcher:async()=>Response.json({data:rows,pagination:{pages:1}})});
-  assert.deepEqual((await service.getSamples()).map(row=>row.id), ['PP1-001','PP1-003']);
-  assert((await service.getSamples()).every(row=>row.dataOrigin==='DEMO_DATA'));
-  delete rows[0].dataOrigin; delete rows[1].dataOrigin;
-  assert.deepEqual((await service.getSamples()).map(row=>row.id), ['PP1-003','PP1-001']);
+  assert.deepEqual((await service.getSamples()).map(row=>row.id), ['CIN003','CIN001']);
+  assert.equal(rows.length,5, 'Filtering does not mutate stored data');
 });
