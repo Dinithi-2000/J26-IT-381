@@ -135,11 +135,11 @@ test('Model 01 missing and incomplete results never fabricate a confidence score
   assert(pending.includes('Not classified')); assert(pending.includes('No prediction generated'));
 });
 
-test('unified Module 02 overview retains both models and registration guidance without samples', () => {
+test('Module 02 overview shows only monitoring content; models live on their own pages', () => {
   const html = renderToStaticMarkup(React.createElement(MemoryRouter, null,
     React.createElement(QualityProvider, null, React.createElement(Dashboard))));
-  for (const text of ['Unified Model 01 and Model 02 outputs', 'Image condition prototype',
-    'Storage Deterioration Risk', 'Research prototype', 'Quality monitoring', 'No registered sample selected']) assert(html.includes(text), text);
+  for (const text of ['Quality monitoring', 'Track how a stored cinnamon sample changes', 'Refresh']) assert(html.includes(text), text);
+  for (const text of ['Image condition prototype', 'Storage Deterioration Risk', 'Gas resistance']) assert(!html.includes(text), text);
   for (const text of ['Explore presentation demo', 'PRESENTATION DEMO', 'Stored Sample Records', 'PP1']) assert(!html.includes(text), text);
   assert(!html.includes('83.6%'));
 });

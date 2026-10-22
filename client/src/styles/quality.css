@@ -393,3 +393,6 @@
 /* Make disabled action buttons visibly inactive. */
 .quality-page .button:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.model-links { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.model-links .inline-link { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.model-links p { margin: 4px 0 0; }
