@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../core/services/auth_service.dart';
+import '../../core/services/backend_connection.dart';
+import 'single_sample_upload_dialog.dart';
 import '../../theme.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -95,6 +99,85 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 20),
+                  _buildSection(
+                    label: 'Security & Role Diagnostics',
+                    children: [
+                      _buildSettingsItem(
+                        icon: Icons.verified_user_rounded,
+                        iconBg: AppTheme.primaryContainer,
+                        iconColor: AppTheme.primaryGreen,
+                        title: 'Inspector Role Verification',
+                        subtitle: 'Force-refresh token and check claims (Dev)',
+                        badgeWidget: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.green50,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'DEV',
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.green800,
+                            ),
+                          ),
+                        ),
+                        onTap: () =>
+                            _showClaimsVerificationDialog(context, authService),
+                      ),
+                      if (kDebugMode) ...[
+                        _buildDivider(),
+                        _buildSettingsItem(
+                          icon: Icons.sync_alt_rounded,
+                          iconBg: AppTheme.primaryContainer,
+                          iconColor: AppTheme.primaryGreen,
+                          title: 'Backend Handshake Diagnostic',
+                          subtitle: 'Test GET /api/grading/auth-check (Dev)',
+                          badgeWidget: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.green50,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'DEV',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.green800,
+                              ),
+                            ),
+                          ),
+                          onTap: () => _showBackendHandshakeDialog(
+                            context,
+                            authService,
+                            ref,
+                          ),
+                        ),
+                        _buildDivider(),
+                        _buildSettingsItem(
+                          icon: Icons.cloud_upload_outlined,
+                          iconBg: AppTheme.primaryContainer,
+                          iconColor: AppTheme.primaryGreen,
+                          title: 'Upload one sample (DEV)',
+                          subtitle: 'Select and confirm one metadata upload',
+                          onTap: () => showDialog<void>(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (_) => const SingleSampleUploadDialog(),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                   const SizedBox(height: 28),
                   _buildSignOutButton(context, authService),
                   const SizedBox(height: 16),
@@ -165,14 +248,20 @@ class SettingsScreen extends ConsumerWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.cloud_done_rounded,
-                    size: 14, color: AppTheme.primaryGreen),
+                Icon(
+                  Icons.cloud_done_rounded,
+                  size: 14,
+                  color: AppTheme.primaryGreen,
+                ),
                 const SizedBox(width: 4),
-                const Text('Synced',
-                    style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.green800)),
+                const Text(
+                  'Synced',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.green800,
+                  ),
+                ),
               ],
             ),
           ),
@@ -246,7 +335,9 @@ class SettingsScreen extends ConsumerWidget {
                         color: AppTheme.successColor,
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: AppTheme.surfaceColor, width: 2.5),
+                          color: AppTheme.surfaceColor,
+                          width: 2.5,
+                        ),
                       ),
                     ),
                   ),
@@ -277,7 +368,9 @@ class SettingsScreen extends ConsumerWidget {
                     const SizedBox(height: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 3),
+                        horizontal: 10,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryContainer,
                         borderRadius: BorderRadius.circular(20),
@@ -285,8 +378,11 @@ class SettingsScreen extends ConsumerWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(Icons.verified_rounded,
-                              size: 12, color: AppTheme.primaryGreen),
+                          Icon(
+                            Icons.verified_rounded,
+                            size: 12,
+                            color: AppTheme.primaryGreen,
+                          ),
                           SizedBox(width: 4),
                           Flexible(
                             child: Text(
@@ -315,8 +411,10 @@ class SettingsScreen extends ConsumerWidget {
   // ──────────────────────────────────────────────
   //  Grouped Settings Section
   // ──────────────────────────────────────────────
-  Widget _buildSection(
-      {required String label, required List<Widget> children}) {
+  Widget _buildSection({
+    required String label,
+    required List<Widget> children,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -422,8 +520,11 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(width: 2),
               ],
-              const Icon(Icons.chevron_right_rounded,
-                  size: 18, color: AppTheme.tertiaryText),
+              const Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: AppTheme.tertiaryText,
+              ),
             ],
           ),
         ),
@@ -523,8 +624,7 @@ class SettingsScreen extends ConsumerWidget {
               context: context,
               builder: (ctx) => AlertDialog(
                 title: const Text('Sign out?'),
-                content:
-                    const Text('Are you sure you want to sign out?'),
+                content: const Text('Are you sure you want to sign out?'),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx),
@@ -538,8 +638,10 @@ class SettingsScreen extends ConsumerWidget {
                         context.go('/login');
                       }
                     },
-                    child: const Text('Sign Out',
-                        style: TextStyle(color: AppTheme.errorColor)),
+                    child: const Text(
+                      'Sign Out',
+                      style: TextStyle(color: AppTheme.errorColor),
+                    ),
                   ),
                 ],
               ),
@@ -550,8 +652,11 @@ class SettingsScreen extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
-                Icon(Icons.logout_rounded,
-                    size: 18, color: AppTheme.errorColor),
+                Icon(
+                  Icons.logout_rounded,
+                  size: 18,
+                  color: AppTheme.errorColor,
+                ),
                 SizedBox(width: 8),
                 Text(
                   'Sign Out',
@@ -566,6 +671,450 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showClaimsVerificationDialog(
+    BuildContext context,
+    dynamic authService,
+  ) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        bool isLoading = false;
+        InspectorClaimsVerificationResult? result;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            Future<void> runVerification() async {
+              setState(() {
+                isLoading = true;
+                result = null;
+              });
+              try {
+                final res = await authService.verifyInspectorClaims(
+                  forceRefresh: true,
+                );
+                if (context.mounted) {
+                  setState(() {
+                    isLoading = false;
+                    result = res;
+                  });
+                }
+              } catch (_) {
+                if (context.mounted) {
+                  setState(() {
+                    isLoading = false;
+                    result = const InspectorClaimsVerificationResult(
+                      isPass: false,
+                      status: ClaimsVerificationStatus.verificationError,
+                      sanitizedMessage:
+                          'FAIL: Diagnostic encountered an error.',
+                    );
+                  });
+                }
+              }
+            }
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: const [
+                  Icon(
+                    Icons.security_rounded,
+                    color: AppTheme.primaryGreen,
+                    size: 22,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Inspector Diagnostic',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Development-only verification: Invokes getCustomClaims(forceRefresh: true) to confirm role=inspector and orgId=matara-plant-01.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.secondaryText,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (isLoading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Column(
+                          children: [
+                            CircularProgressIndicator(strokeWidth: 3),
+                            SizedBox(height: 12),
+                            Text(
+                              'Refreshing token & verifying claims...',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.secondaryText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (result != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: result!.isPass
+                              ? AppTheme.green50
+                              : AppTheme.errorBg,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: result!.isPass
+                                ? AppTheme.primaryGreen.withValues(alpha: 0.3)
+                                : AppTheme.errorColor.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  result!.isPass
+                                      ? Icons.check_circle_rounded
+                                      : Icons.cancel_rounded,
+                                  color: result!.isPass
+                                      ? AppTheme.primaryGreen
+                                      : AppTheme.errorColor,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  result!.isPass
+                                      ? 'STATUS: PASS'
+                                      : 'STATUS: FAIL',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    color: result!.isPass
+                                        ? AppTheme.green800
+                                        : AppTheme.errorColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              result!.sanitizedMessage,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.darkText,
+                                height: 1.3,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Category: ${result!.status.name}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppTheme.tertiaryText,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ] else ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceSubtle,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Text(
+                          'Ready to verify. Tap "Verify Claims" below.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.secondaryText,
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Security Notice: Raw tokens and private credentials are never logged or displayed. This diagnostic does not bypass production access controls.',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppTheme.tertiaryText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Close'),
+                ),
+                if (!isLoading)
+                  ElevatedButton(
+                    onPressed: runVerification,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryGreen,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(result == null ? 'Verify Claims' : 'Re-verify'),
+                  ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _showBackendHandshakeDialog(
+    BuildContext context,
+    AuthService authService,
+    WidgetRef ref,
+  ) async {
+    var baseUrl = ref.read(backendBaseUrlProvider);
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        bool isLoading = false;
+        BackendHandshakeResult? result;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            Future<void> runHandshake() async {
+              setState(() {
+                isLoading = true;
+                result = null;
+              });
+              try {
+                final res = await authService.verifyBackendHandshake(
+                  baseUrl: baseUrl,
+                );
+                if (context.mounted) {
+                  setState(() {
+                    isLoading = false;
+                    result = res;
+                  });
+                }
+              } catch (_) {
+                if (context.mounted) {
+                  setState(() {
+                    isLoading = false;
+                    result = const BackendHandshakeResult(
+                      isPass: false,
+                      status: BackendHandshakeStatus.handshakeError,
+                      sanitizedMessage:
+                          'FAIL: Diagnostic encountered an error.',
+                    );
+                  });
+                }
+              }
+            }
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: const [
+                  Icon(
+                    Icons.sync_alt_rounded,
+                    color: AppTheme.primaryGreen,
+                    size: 22,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Backend Handshake',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Sends an authenticated GET /api/grading/auth-check request with a fresh Firebase ID token to verify backend handshake without creating records.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.secondaryText,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      initialValue: baseUrl,
+                      onChanged: (value) {
+                        baseUrl = value;
+                        ref.read(backendBaseUrlProvider.notifier).setUrl(value);
+                      },
+                      enabled: !isLoading,
+                      decoration: InputDecoration(
+                        labelText: 'Backend Base URL',
+                        hintText: 'http://192.168.1.10:5000',
+                        prefixIcon: const Icon(Icons.link_rounded, size: 20),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Use the backend PC Wi-Fi address. For USB loopback, configure adb reverse and build with BACKEND_ADB_REVERSE=true.',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        color: AppTheme.tertiaryText,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (isLoading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Column(
+                          children: [
+                            CircularProgressIndicator(strokeWidth: 3),
+                            SizedBox(height: 12),
+                            Text(
+                              'Sending authenticated handshake...',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.secondaryText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (result != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: result!.isPass
+                              ? AppTheme.green50
+                              : AppTheme.errorBg,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: result!.isPass
+                                ? AppTheme.primaryGreen.withValues(alpha: 0.3)
+                                : AppTheme.errorColor.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  result!.isPass
+                                      ? Icons.check_circle_rounded
+                                      : Icons.cancel_rounded,
+                                  color: result!.isPass
+                                      ? AppTheme.primaryGreen
+                                      : AppTheme.errorColor,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  result!.isPass
+                                      ? 'STATUS: PASS'
+                                      : 'STATUS: FAIL',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    color: result!.isPass
+                                        ? AppTheme.green800
+                                        : AppTheme.errorColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              result!.sanitizedMessage,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.darkText,
+                                height: 1.3,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Category: ${result!.status.name}${result!.statusCode != null ? ' (HTTP ${result!.statusCode})' : ''}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppTheme.tertiaryText,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ] else ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceSubtle,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Text(
+                          'Ready to handshake. Tap "Test Handshake" below.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.secondaryText,
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Security Notice: Raw tokens, emails, and credentials are never logged or displayed.',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppTheme.tertiaryText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Close'),
+                ),
+                if (!isLoading)
+                  ElevatedButton(
+                    onPressed: runHandshake,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryGreen,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(result == null ? 'Test Handshake' : 'Re-test'),
+                  ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

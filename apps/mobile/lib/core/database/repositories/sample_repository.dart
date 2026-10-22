@@ -246,6 +246,42 @@ class SampleRepository {
     return (_db.select(_db.samples)..where((t) => t.id.equals(id))).getSingle();
   }
 
+  Future<List<Sample>> getUnsyncedSamplesForOwner(String ownerId) =>
+      (_db.select(
+            _db.samples,
+          )..where((t) => t.ownerId.equals(ownerId) & t.isSynced.equals(false)))
+          .get();
+
+  /// Compare the full snapshot, including revision, within the write transaction.
+  /// Only acknowledgment fields change; original grading and photo data survive.
+  Future<bool> acknowledgeUpload(
+    Sample uploaded,
+    DateTime serverReceiptTime, {
+    required bool Function() isCurrentUser,
+  }) => _db.transaction(() async {
+    final current = await (_db.select(
+      _db.samples,
+    )..where((t) => t.id.equals(uploaded.id))).getSingleOrNull();
+    if (current != uploaded || uploaded.isSynced || !isCurrentUser()) {
+      return false;
+    }
+    final count =
+        await (_db.update(_db.samples)..where(
+              (t) =>
+                  t.id.equals(uploaded.id) &
+                  t.ownerId.equals(uploaded.ownerId) &
+                  t.revision.equals(uploaded.revision) &
+                  t.isSynced.equals(false),
+            ))
+            .write(
+              SamplesCompanion(
+                isSynced: const drift.Value(true),
+                serverReceiptTime: drift.Value(serverReceiptTime),
+              ),
+            );
+    return count == 1;
+  });
+
   Stream<List<Sample>> watchAllSamples() {
     return (_db.select(_db.samples)..orderBy([
           (t) => drift.OrderingTerm(

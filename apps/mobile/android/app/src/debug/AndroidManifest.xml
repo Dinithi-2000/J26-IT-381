@@ -4,4 +4,6 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Local HTTP diagnostics are available only in the debug variant. -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>
