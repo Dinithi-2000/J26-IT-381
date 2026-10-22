@@ -15,6 +15,7 @@ import { connectDatabase, isDatabaseConnected } from "./config/db.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import predictionRoutes from "./routes/predictionRoutes.js";
 import { getModelInfo } from "./services/mlService.js";
+import dehydrationRoutes from "./routes/dehydrationRoutes.js";
 
 const serverDirectory = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: resolve(serverDirectory, "../.env") });
@@ -50,6 +51,9 @@ app.use("/api/module-02/image-classification", createImageRouter());
 app.use("/api/module-02", createRiskRouter(module02Risk));
 app.use("/api", createModule02Router(module02));
 
+app.use(
+  "/api/dehydration", dehydrationRoutes);
+
 app.use((_request, response) => {
   response.status(404).json({ message: "Route not found" });
 });
@@ -72,6 +76,17 @@ async function startServer() {
   app.listen(port, () => {
     console.log(`Server listening on http://localhost:${port}`);
   });
+  await connectDatabase();
+  app.listen(
+  port,
+  "0.0.0.0",
+  () => {
+
+    console.log(
+      `Server listening on port ${port}`
+    );
+  }
+);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) startServer().catch((error) => {
