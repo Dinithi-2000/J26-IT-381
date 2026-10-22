@@ -3,6 +3,7 @@ import { createModule02Router } from './module02/routes.js';
 import { createImageRouter } from './module02-image/routes.js';
 import { createRiskRouter } from './module02-risk/routes.js';
 import { SyntheticRiskPrediction } from './module02-risk/model.js';
+import { createDailyRiskPredictor } from './module02-risk/daily.js';
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
@@ -63,7 +64,9 @@ return app;
 }
 
 async function startServer() {
-  const app = createApp();
+  const daily = process.env.MODULE02_DAILY_RISK_PREDICTION !== 'false';
+  const app = createApp({ module02: daily ? { onReading: createDailyRiskPredictor() } : {} });
+  if (daily) console.log('Model 02 daily risk prediction: on (one per sample per day)');
   const connected = await connectDatabase();
   if (connected) await Promise.all([Sample,SensorReading,SampleImage,DegradationPrediction,SyntheticRiskPrediction].map(Model=>Model.init()));
   app.listen(port, () => {

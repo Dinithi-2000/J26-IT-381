@@ -21,12 +21,16 @@ export function hardwareStatus(state, sampleId = state.sampleId, now = state.now
   const stale = !checking && state.phase === 'ready' && validTime && !fresh;
   const weightAvailable = validTime && reading.sensorStatus?.weight === 'online'
     && Number.isFinite(reading.weightGrams) && reading.weightGrams >= 0 && reading.weightGrams <= 10000;
+  const envAvailable = matching && reading.environment?.temperature?.source === 'sensor'
+    && Number.isFinite(reading.temperatureC) && Number.isFinite(reading.relativeHumidityPercent);
   const colorAvailable = matching && reading.sensorStatus?.color === 'online'
     && ['red','green','blue'].every(key => Number.isFinite(reading[key]) && reading[key] >= 0 && reading[key] <= 255)
     && ['red','green','blue','clear'].every(key => Number.isFinite(reading.rgbRaw?.[key])) && reading.rgbRaw.clear > 0;
   const esp32 = checking ? 'Checking' : connected ? 'Connected' : stale ? 'Stale' : 'Disconnected';
   return {esp32, hx711: checking ? 'Checking' : connected && weightAvailable ? 'Online' : stale && weightAvailable ? 'Stale' : 'Offline',
     rgb: connected && colorAvailable ? 'Online' : stale && colorAvailable ? 'Stale' : 'Offline',
+    dht: checking ? 'Checking' : connected && envAvailable ? 'Online' : stale && envAvailable ? 'Stale' : 'Offline',
+    temperature: envAvailable ? reading.temperatureC : null, humidity: envAvailable ? reading.relativeHumidityPercent : null,
     connected, freshnessSeconds, weight: weightAvailable ? reading.weightGrams : null,
     measuredAt: matching && Number.isFinite(recorded) ? reading.recordedAt : null,
     receivedAt: matching && Number.isFinite(received) ? reading.createdAt : null,

@@ -70,7 +70,7 @@ test('offline sensors store null instead of zero and cannot claim raw measuremen
   assert.throws(() => readingInput({...body, weightGrams: 0}));
 });
 
-test('only actual manually measured environmental values with provenance enable risk inputs', () => {
+test('manual or device-sensor environmental values with provenance enable risk inputs', () => {
   const missing = readingInput(fixture());
   assert.throws(() => storedReadingInput({storageStartDate: new Date('2026-01-01')}, missing), e => e.code === 'ENVIRONMENT_REQUIRED');
   const measuredAt = new Date(Date.now()-2000).toISOString();
@@ -80,6 +80,8 @@ test('only actual manually measured environmental values with provenance enable 
   assert.equal(row.environment.temperature.source, 'manual');
   assert.equal(storedReadingInput({storageStartDate: new Date('2026-01-01')}, row).temperature_c, 28);
   assert.throws(() => readingInput({...manual, environment: {...manual.environment, temperature: {...manual.environment.temperature, source: 'simulated'}}}));
+  const sensed = readingInput({...manual, environment: {temperature: {...manual.environment.temperature, source: 'sensor', instrument: 'DHT11'}, humidity: {...manual.environment.humidity, source: 'sensor', instrument: 'DHT11'}}});
+  assert.equal(sensed.environment.humidity.source, 'sensor'); assert.equal(sensed.environment.temperature.instrument, 'DHT11');
   assert.throws(() => readingInput({...fixture(), temperatureC: 28}));
   assert.throws(() => readingInput({...manual, environment: {...manual.environment, temperature: {...manual.environment.temperature, measuredAt: '2026-01-01'}}}));
 });

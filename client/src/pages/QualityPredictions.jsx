@@ -8,13 +8,13 @@ export default function QualityPredictions() {
     <DataState />
     <SampleSelector />
     <RiskPredictionPanel />
-    <Panel title="Existing forecast history" eyebrow="SEPARATE HISTORICAL FORECAST RECORDS">
-      <p>These records belong to the original forecast workflow. Their stored horizons are historical metadata and do not describe Model 02's risk output.</p>
-      {selected?.predictionTotal > 200 && <p>Showing the latest 200 of {selected.predictionTotal} forecasts. Older records remain available through the existing API.</p>}
-      {!selected?.predictions?.length ? <p>No existing forecast records for this sample.</p> : <div className="table-wrap" tabIndex="0" role="region" aria-label="Existing forecast history"><table>
+    {!!selected?.predictions?.length && <Panel title="Older forecasts" eyebrow="EARLIER FORECAST TOOL">
+      <p>Records from the earlier forecast tool, separate from Model 02.</p>
+      {selected.predictionTotal > 200 && <p>Showing the latest 200 of {selected.predictionTotal} forecasts.</p>}
+      <div className="table-wrap" tabIndex="0" role="region" aria-label="Older forecasts"><table>
         <thead><tr><th scope="col">Timestamp</th><th scope="col">Model</th><th scope="col">Stored horizon</th><th scope="col">Risk</th></tr></thead>
         <tbody>{selected.predictions.map(row => <tr key={row._id}><td>{row.predictedAt}</td><td>{row.modelVersion}</td><td>{row.horizonDays} days</td><td>{row.riskCategory}</td></tr>)}</tbody>
-      </table></div>}
-    </Panel>
+      </table></div>
+    </Panel>}
   </>;
 }

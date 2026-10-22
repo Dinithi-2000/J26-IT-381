@@ -34,7 +34,7 @@ test('API client uses Node bearer authentication and only sample/reading identif
   assert.equal(calls[0].url, '/api/module-02/risk-predictions');
   assert.equal(calls[0].options.headers.Authorization, 'Bearer operator-only');
   assert.deepEqual(JSON.parse(calls[0].options.body), {sampleId: sample.id, readingId});
-  assert.equal(calls[1].url, '/api/module-02/samples/CIN001/risk-predictions?page=2&limit=12');
+  assert.equal(calls[1].url, '/api/module-02/samples/CIN001/risk-predictions?page=2&limit=30');
   assert.equal(calls[1].options.headers.Authorization, 'Bearer operator-only');
   assert(calls.every(call => !Object.hasOwn(call.options.headers, 'X-Risk-Service-Token')));
 });

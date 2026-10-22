@@ -16,7 +16,7 @@ const sampleImageAuth = (req,res,next) => {
 import { fail, id, date, number, object, sampleInput, readingInput, pagination, dateFilter } from './validation.js';
 export const uploadDirectory = () => resolve(process.env.MODULE02_UPLOAD_DIR || fileURLToPath(new URL('../../storage/module02', import.meta.url)));
 const imageOutput = row => ({ ...row.toObject(), url: `/api/module-02/images/${row._id}/file` });
-export function createModule02Router({ Sample = models.Sample, SensorReading = models.SensorReading, SampleImage = models.SampleImage, DegradationPrediction = models.DegradationPrediction, databaseReady = isDatabaseConnected } = {}) {
+export function createModule02Router({ Sample = models.Sample, SensorReading = models.SensorReading, SampleImage = models.SampleImage, DegradationPrediction = models.DegradationPrediction, databaseReady = isDatabaseConnected, onReading = null } = {}) {
   const router = Router();
   router.use(['/samples','/module-02'],(_req,_res,next) => { if (!databaseReady()) fail(503,'DATABASE_UNAVAILABLE','Module 02 database is unavailable.'); next(); });
   const sample = async (sampleId, writable = false) => {
@@ -50,7 +50,10 @@ export function createModule02Router({ Sample = models.Sample, SensorReading = m
     if (values.deviceId !== req.deviceId) fail(403,'DEVICE_MISMATCH','Payload deviceId must match authenticated device.');
     const row = await sample(values.sampleId,true);
     if (values.recordedAt < row.storageStartDate) fail(400,'VALIDATION_ERROR','Reading predates sample storage.');
-    res.status(201).json(await SensorReading.create(values));
+    const saved = await SensorReading.create(values);
+    res.status(201).json(saved);
+    // Runs after the response, so the device upload never waits for Model 02.
+    if (onReading) void Promise.resolve(onReading(row, saved)).catch(() => {});
   });
   router.get('/module-02/readings/latest',async (req,res) => {
     const row = await sample(req.query.sampleId);

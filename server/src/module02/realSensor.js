@@ -78,11 +78,13 @@ export function realSensorInput(body) {
     } else {
       number(body[key], key, min, max);
       object(metadata, ['source', 'measuredAt', 'instrument']);
-      requireValue(metadata.source === 'manual', 'Only actual manually measured environmental values are supported in this two-sensor setup.');
+      // 'manual' = read from a separate instrument by hand; 'sensor' = measured by the device (e.g. DHT11).
+      requireValue(['manual', 'sensor'].includes(metadata.source), 'Environmental values must be manual or device-sensor measurements.');
       const measuredAt = before(metadata.measuredAt, `${sourceKey}.measuredAt`, recordedAt);
-      requireValue(recordedAt - measuredAt <= 3600000, 'Manual environmental measurement is older than one hour at capture time.');
+      const maxAge = metadata.source === 'sensor' ? 300000 : 3600000;
+      requireValue(recordedAt - measuredAt <= maxAge, `${metadata.source === 'sensor' ? 'Sensor' : 'Manual'} environmental measurement is too old at capture time.`);
       result[key] = body[key];
-      result.environment[sourceKey] = {source: 'manual', measuredAt, instrument: text(metadata.instrument, 'instrument')};
+      result.environment[sourceKey] = {source: metadata.source, measuredAt, instrument: text(metadata.instrument, 'instrument')};
     }
   }
   return result;

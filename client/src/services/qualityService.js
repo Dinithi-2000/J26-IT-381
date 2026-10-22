@@ -43,7 +43,7 @@ export function createQualityService({ baseUrl = '/api', fetcher = globalThis.fe
     getImages: (id,options) => request(`${path(id)}/images?limit=200`,options),
     getPredictions: (id,options) => request(`${path(id)}/predictions?limit=200`,options),
     createRiskPrediction: (sampleId,readingId,token,options={}) => request('/module-02/risk-predictions',{...options,method:'POST',token,body:{sampleId,readingId}}),
-    getRiskPredictions: (id,token,page=1,options={}) => request(`${path(id)}/risk-predictions?page=${page}&limit=12`,{...options,token}),
+    getRiskPredictions: (id,token,page=1,options={}) => request(`${path(id)}/risk-predictions?page=${page}&limit=30`,{...options,token}),
   };
 }
 // All stored Module 02 data uses the main Atlas-backed Node API.

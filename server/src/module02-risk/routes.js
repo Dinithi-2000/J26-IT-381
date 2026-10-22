@@ -36,6 +36,46 @@ export function storedReadingInput(sample, reading, now = Date.now(), {allowIllu
   return input;
 }
 
+// Validates a stored reading, asks Model 02 for a risk category and saves it once per
+// reading. Used by the "Request risk prediction" route and by the daily automatic job.
+export async function saveRiskPrediction({sample, reading, RiskPrediction = SyntheticRiskPrediction,
+  predict = requestRiskPrediction, now = Date.now, allowIllustrativeHistory = false}) {
+  const key = {sampleId: sample.sampleId, sensorReadingId: reading._id};
+  const existing = await RiskPrediction.findOne(key);
+  if (existing) return {created: false, value: existing};
+  if (allowIllustrativeHistory) verifyPp1Connection();
+  // Persisted demonstration records can be replayed as historical simulations.
+  // Browser payloads cannot supply these fields; real measurements stay strict.
+  const illustrative = sample.dataOrigin === 'DEMO_DATA' && reading.dataOrigin === 'DEMO_DATA';
+  const inputSnapshot = storedReadingInput(sample, reading, now(), {allowIllustrativeHistory: allowIllustrativeHistory || illustrative});
+  const output = validateRiskResponse(await predict(inputSnapshot), now());
+  const savedAt = new Date(now());
+  const values = {...key, inputSnapshot, predictedRisk: output.predicted_risk,
+    riskCategory: CATEGORY_MAP[output.predicted_risk], modelVersion: output.model_version,
+    predictedAt: new Date(output.predicted_at), title: output.title, dataOrigin: output.data_origin,
+    validationStatus: 'not_scientifically_validated', validatedForRealWorldUse: false,
+    warning: output.warning, predictionHorizonDays: null, predictionHorizonVerified: false,
+    horizonNote: output.horizon_note, createdAt: savedAt, updatedAt: savedAt};
+  if (reading.dataOrigin === 'REAL_SENSOR') values.inputSources = {
+    storage_day: 'derived_completed_utc_days', temperature_c: reading.environment?.temperature?.source || 'unrecorded',
+    humidity_percent: reading.environment?.humidity?.source || 'unrecorded', weight_g: 'HX711_calibrated_raw_counts',
+    color_r: 'TCS34725_display_normalization', color_g: 'TCS34725_display_normalization', color_b: 'TCS34725_display_normalization',
+  };
+  if (reading.dataOrigin === 'DEMO_DATA') values.inputSources = Object.fromEntries(Object.keys(inputSnapshot).map(name=>[name,'DEMO_DATA illustrative record']));
+  // Atomic $setOnInsert + unique index protects persistence across processes.
+  // Concurrent requests may infer twice, but only the winning result is stored.
+  try {
+    const result = await RiskPrediction.findOneAndUpdate(key, {$setOnInsert: values},
+      {upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true, includeResultMetadata: true, timestamps: false});
+    return {created: !result.lastErrorObject?.updatedExisting, value: result.value};
+  } catch (error) {
+    if (error.code !== 11000) throw error;
+    const winner = await RiskPrediction.findOne(key);
+    if (!winner) fail(503, 'RISK_PERSISTENCE_FAILED', 'Risk prediction could not be saved. Retry the same request.');
+    return {created: false, value: winner};
+  }
+}
+
 export function createRiskRouter({Sample = DefaultSample, SensorReading = DefaultReading,
   RiskPrediction = SyntheticRiskPrediction, databaseReady = isDatabaseConnected,
   predict = requestRiskPrediction, now = Date.now, allowIllustrativeHistory = false} = {}) {
@@ -57,41 +97,8 @@ export function createRiskRouter({Sample = DefaultSample, SensorReading = Defaul
     if (sample.archivedAt) fail(409, 'SAMPLE_ARCHIVED', 'Archived samples cannot receive new risk predictions.');
     const reading = await SensorReading.findOne({_id: req.body.readingId, sampleId: sample.sampleId});
     if (!reading || reading.sampleId !== sample.sampleId) fail(404, 'READING_NOT_FOUND', 'Selected reading does not exist for this sample.');
-    const key = {sampleId: sample.sampleId, sensorReadingId: reading._id};
-    const existing = await RiskPrediction.findOne(key);
-    if (existing) return res.json(existing);
-    if (allowIllustrativeHistory) verifyPp1Connection();
-    // Persisted demonstration records can be replayed as historical simulations.
-    // Browser payloads cannot supply these fields; real measurements stay strict.
-    const illustrative = sample.dataOrigin === 'DEMO_DATA' && reading.dataOrigin === 'DEMO_DATA';
-    const inputSnapshot = storedReadingInput(sample, reading, now(), {allowIllustrativeHistory: allowIllustrativeHistory || illustrative});
-    const output = validateRiskResponse(await predict(inputSnapshot), now());
-    const savedAt = new Date(now());
-    const values = {...key, inputSnapshot, predictedRisk: output.predicted_risk,
-      riskCategory: CATEGORY_MAP[output.predicted_risk], modelVersion: output.model_version,
-      predictedAt: new Date(output.predicted_at), title: output.title, dataOrigin: output.data_origin,
-      validationStatus: 'not_scientifically_validated', validatedForRealWorldUse: false,
-      warning: output.warning, predictionHorizonDays: null, predictionHorizonVerified: false,
-      horizonNote: output.horizon_note, createdAt: savedAt, updatedAt: savedAt};
-    if (reading.dataOrigin === 'REAL_SENSOR') values.inputSources = {
-      storage_day: 'derived_completed_utc_days', temperature_c: reading.environment?.temperature?.source || 'unrecorded',
-      humidity_percent: reading.environment?.humidity?.source || 'unrecorded', weight_g: 'HX711_calibrated_raw_counts',
-      color_r: 'TCS34725_display_normalization', color_g: 'TCS34725_display_normalization', color_b: 'TCS34725_display_normalization',
-    };
-    if (reading.dataOrigin === 'DEMO_DATA') values.inputSources = Object.fromEntries(Object.keys(inputSnapshot).map(key=>[key,'DEMO_DATA illustrative record']));
-    // Atomic $setOnInsert + unique index protects persistence across processes.
-    // Concurrent requests may infer twice, but only the winning result is stored.
-    try {
-      const result = await RiskPrediction.findOneAndUpdate(key, {$setOnInsert: values},
-        {upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true, includeResultMetadata: true, timestamps: false});
-      // Set server timestamps only on insertion, never rewrite a retry's record.
-      return res.status(result.lastErrorObject?.updatedExisting ? 200 : 201).json(result.value);
-    } catch (error) {
-      if (error.code !== 11000) throw error;
-      const winner = await RiskPrediction.findOne(key);
-      if (!winner) fail(503, 'RISK_PERSISTENCE_FAILED', 'Risk prediction could not be saved. Retry the same request.');
-      return res.json(winner);
-    }
+    const {created, value} = await saveRiskPrediction({sample, reading, RiskPrediction, predict, now, allowIllustrativeHistory});
+    return res.status(created ? 201 : 200).json(value);
   });
 
   router.get('/samples/:sampleId/risk-predictions', operatorAuth, ready, async (req, res) => {

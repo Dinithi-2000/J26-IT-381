@@ -52,7 +52,7 @@ const render = change => renderToStaticMarkup(React.createElement(View, {state: 
 
 test('risk panel renders real-reading labels, units, IDs and UTC storage duration', () => {
   const html = render();
-  for (const text of ['Storage Deterioration Risk', 'MODEL 02', 'CIN001', '30.5 °C', '76 %', '98.2 g', '145 / 90 / 50', '5 completed days', 'Sensor reading timestamp', reading._id]) assert(html.includes(text), text);
+  for (const text of ['Storage risk prediction', 'MODEL 02', '30.5 °C', '76 %', '98.2 g', '145 / 90 / 50', '5 days', 'Measured', '1. Latest reading', '2. Predict', '3. Result']) assert(html.includes(text), text);
   assert(html.includes('Request risk prediction')); assert(html.includes('Operator token'));
 });
 
@@ -84,10 +84,10 @@ test('loading skeletons, busy controls and errors render accessibly', () => {
 
 test('risk history is separate, paginated and identifies historical reading mismatches', () => {
   const html = render({history: [result('High')], pagination: {page: 1, pages: 2, total: 13}});
-  assert(html.includes('Historical risk predictions')); assert(html.includes('High Risk'));
+  assert(html.includes('Risk day by day')); assert(html.includes('risk-timeline')); assert(html.includes('High Risk')); assert(html.includes('High risk of quality loss'));
   assert(html.includes('Page 1 of 2')); assert(html.includes('13 records'));
   assert(html.includes('Next risk page')); assert(html.includes('Not validated'));
-  assert(render({result: {...result('Low'), sensorReadingId: '000000000000000000000002'}}).includes('different reading'));
+  assert(render({result: {...result('Low'), sensorReadingId: '000000000000000000000002'}}).includes('earlier reading'));
 });
 
 test('Model 01 still renders its existing upload, capture and prediction-history UI', () => {
@@ -100,7 +100,7 @@ test('Model 01 still renders its existing upload, capture and prediction-history
 test('prediction page retains sample navigation and separates legacy forecast history', () => {
   const html = renderToStaticMarkup(React.createElement(MemoryRouter, null,
     React.createElement(QualityProvider, null, React.createElement(PredictionsPage))));
-  assert(html.includes('Existing forecast history')); assert(html.includes('Storage Deterioration Risk'));
+  assert(html.includes('Storage risk prediction')); assert(!html.includes('Older forecasts'));
   assert(!html.includes('Planning horizon')); assert(!html.includes('prediction-horizon'));
   const routes = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
   for (const route of ['module-01', 'module-02', 'module-03', 'module-04', 'images', 'predictions']) assert(routes.includes(`path="${route}"`));

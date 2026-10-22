@@ -21,8 +21,8 @@ const readingSchema = new Schema({
   rawWeightSamples: {type: [Number], default: undefined},
   rgbRaw: {red: Number, green: Number, blue: Number, clear: Number},
   colorSettings: {gain: Number, integrationTimeMs: Number, lighting: String, distanceMm: Number, normalization: String},
-  environment: {temperature: {source: {type: String, enum: ['manual', 'unavailable', 'illustrative']}, measuredAt: Date, instrument: String},
-    humidity: {source: {type: String, enum: ['manual', 'unavailable', 'illustrative']}, measuredAt: Date, instrument: String}},
+  environment: {temperature: {source: {type: String, enum: ['manual', 'sensor', 'unavailable', 'illustrative']}, measuredAt: Date, instrument: String},
+    humidity: {source: {type: String, enum: ['manual', 'sensor', 'unavailable', 'illustrative']}, measuredAt: Date, instrument: String}},
   calibration: { protocol: String, version: String, calibratedAt: Date, tareAt: Date, tareRaw: Number,
     countsPerGram: Number, referenceMassGrams: Number, stabilityLimitGrams: Number, spreadGrams: Number },
 }, options);

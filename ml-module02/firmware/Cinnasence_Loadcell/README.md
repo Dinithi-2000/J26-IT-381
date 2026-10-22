@@ -228,3 +228,24 @@ while a reading is taken.
   (gain 4x, 153.6 ms, lighting, distance). Node derives display RGB as `channel / clear × 255`.
 - If the sensor is missing, too dark or saturated, the weight still uploads with colour offline.
   If `R` reports saturation, lower `COLOR_GAIN` and the matching `TCS34725_GAIN_*` value together.
+
+## DHT11 temperature and humidity sensor
+
+Install **DHT sensor library** (Adafruit) from the Library Manager; it also needs **Adafruit Unified Sensor**.
+
+| DHT11 module | ESP32-S3 |
+| --- | --- |
+| + / VCC | 3.3V |
+| OUT / DATA | GPIO 7 (`DHT_PIN`) |
+| − / GND | GND |
+
+A 3-pin module already has its pull-up resistor. A bare 4-pin DHT11 needs 10 kΩ between DATA and VCC.
+Do not power it from 5V: DATA would then reach 5V, which the ESP32 cannot tolerate.
+
+- Send **`H`** to print one reading, e.g. `[ENV] DHT11 temperature=29.0 C humidity=70.0 %`.
+- Each upload sends `temperatureC`, `relativeHumidityPercent` and
+  `environment.{temperature,humidity} = {source: "sensor", instrument: "DHT11", measuredAt}`.
+  If the DHT11 cannot be read, both values are sent as null and the weight still uploads.
+- With temperature, humidity, weight and RGB all present, the server makes one automatic
+  Model 02 risk prediction per sample per day.
+- DHT11 accuracy is about ±2 °C and ±5 % RH (20–80 % RH range).
