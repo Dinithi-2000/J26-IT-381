@@ -41,7 +41,7 @@ async function call(path,{method='GET',body,headers={},raw}={}) {
  return {status:response.status,body:contentType.includes('json')?await response.json():await response.arrayBuffer()};
 }
 before(async()=>{
- process.env.MODULE02_OPERATOR_TOKEN=operator;process.env.MODULE02_DEVICE_KEYS=JSON.stringify({'ESP32-TEST':deviceKey});
+ delete process.env.MODULE02_LOCAL_NO_TOKEN;delete process.env.MODULE02_LOCAL_UPLOADS_WITHOUT_TOKEN;process.env.MODULE02_OPERATOR_TOKEN=operator;process.env.MODULE02_DEVICE_KEYS=JSON.stringify({'ESP32-TEST':deviceKey});
  storage=await mkdtemp(join(tmpdir(),'cinnasense-module02-test-'));process.env.MODULE02_UPLOAD_DIR=storage;
  server=createServer(createApp({module02:{...models,databaseReady:()=>true}}));await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));base=`http://127.0.0.1:${server.address().port}/api`;
 });

@@ -77,11 +77,11 @@ test('actual Colab class spelling passes the existing result contract without re
 test('manual uploads skip the operator token only from this computer and only when enabled', async () => {
   const {localUploadAllowed} = await import('../src/module02/auth.js');
   const request = (address, headers = {}) => ({socket: {remoteAddress: address}, get: name => headers[name.toLowerCase()]});
-  const previous = process.env.MODULE02_LOCAL_UPLOADS_WITHOUT_TOKEN;
+  const previous = process.env.MODULE02_LOCAL_NO_TOKEN;
   try {
-    delete process.env.MODULE02_LOCAL_UPLOADS_WITHOUT_TOKEN;
+    delete process.env.MODULE02_LOCAL_NO_TOKEN;
     assert.equal(localUploadAllowed(request('127.0.0.1')), false);
-    process.env.MODULE02_LOCAL_UPLOADS_WITHOUT_TOKEN = 'true';
+    process.env.MODULE02_LOCAL_NO_TOKEN = 'true';
     assert.equal(localUploadAllowed(request('127.0.0.1')), true);
     assert.equal(localUploadAllowed(request('::1')), true);
     assert.equal(localUploadAllowed(request('172.20.10.5')), false);
@@ -89,6 +89,6 @@ test('manual uploads skip the operator token only from this computer and only wh
     assert.equal(localUploadAllowed(request('127.0.0.1', {'x-device-id': 'ESP32-CAM-01'})), false);
     assert.equal(localUploadAllowed(request('127.0.0.1', {authorization: 'Bearer wrong'})), false);
   } finally {
-    if (previous === undefined) delete process.env.MODULE02_LOCAL_UPLOADS_WITHOUT_TOKEN; else process.env.MODULE02_LOCAL_UPLOADS_WITHOUT_TOKEN = previous;
+    if (previous === undefined) delete process.env.MODULE02_LOCAL_NO_TOKEN; else process.env.MODULE02_LOCAL_NO_TOKEN = previous;
   }
 });

@@ -4,13 +4,13 @@ import {Panel} from './QualityUI';
 import {qualityService} from '../services/qualityService';
 import {createRiskWorkspace, readingCondition, RISK_DISCLAIMER, RISK_LABELS} from '../services/riskPredictionState';
 import {formatTimestamp} from '../data/demoQuality';
-import {useOperatorToken} from '../services/operatorToken';
+import {TOKEN_OPTIONAL, useOperatorToken} from '../services/operatorToken';
 
 const stamp = value => value && Number.isFinite(Date.parse(value)) ? formatTimestamp(value) : 'Not available';
 const value = (number, unit = '') => typeof number === 'number' && Number.isFinite(number) ? `${number}${unit}` : 'Not available';
 const noop = () => {};
 
-export function RiskPredictionView({state, sample, token = '', onToken = noop, onPredict = noop,
+export function RiskPredictionView({state, sample, token = '', tokenOptional = false, onToken = noop, onPredict = noop,
   onReading = noop, onHistory = noop, now = Date.now()}) {
   const busy = state.predictionStatus === 'loading';
   const reading = state.reading;
@@ -41,8 +41,8 @@ export function RiskPredictionView({state, sample, token = '', onToken = noop, o
         <p className="panel-caption">Storage duration uses completed UTC 24-hour periods at measurement time. This is a prototype assumption until training metadata confirms the calculation. The backend independently checks freshness and input limits.</p>
       </section>
       <form className="risk-auth-form" onSubmit={event => {event.preventDefault(); onHistory(1);}}>
-        <label htmlFor="risk-operator-token">Operator token<input id="risk-operator-token" type="password" autoComplete="off" value={token} disabled={busy} onChange={event => onToken(event.target.value)} /></label>
-        <p className="panel-caption">Remembered until you close this browser tab. Enter your operator token, never the Python service token.</p>
+        {!tokenOptional && <><label htmlFor="risk-operator-token">Operator token<input id="risk-operator-token" type="password" autoComplete="off" value={token} disabled={busy} onChange={event => onToken(event.target.value)} /></label>
+        <p className="panel-caption">Remembered until you close this browser tab. Enter your operator token, never the Python service token.</p></>}
         <div className="classifier-actions">
           <button type="button" className="button" onClick={onPredict} disabled={!enabled || !state.hasToken || !reading || condition.invalid || state.readingStatus !== 'ready' || busy}>{busy ? 'Requesting stored risk result…' : 'Request risk prediction'}</button>
           <button type="submit" className="button secondary" disabled={!state.hasToken || state.historyStatus === 'loading' || busy}>Load risk history</button>
@@ -92,7 +92,7 @@ export function RiskPredictionView({state, sample, token = '', onToken = noop, o
 
 export default function RiskPredictionPanel({service = qualityService}) {
   const {selected, demoEnabled} = useQuality();
-  const workspace = useMemo(() => createRiskWorkspace(service), [service]);
+  const workspace = useMemo(() => createRiskWorkspace(service, {tokenOptional: TOKEN_OPTIONAL}), [service]);
   const state = useSyncExternalStore(workspace.subscribe, workspace.getSnapshot, workspace.getSnapshot);
   const [token, setToken] = useOperatorToken();
   const [now, setNow] = useState(Date.now());
@@ -106,7 +106,7 @@ export default function RiskPredictionPanel({service = qualityService}) {
   // Hide the previous sample synchronously, before effects cancel its requests.
   const visible = state.sampleId === selected?.id && state.demo === demoEnabled ? state
     : {...state, sampleId: selected?.id || null, demo: demoEnabled, reading: null, result: null, history: [], error: '', notice: '', readingError: '', historyError: '', readingStatus: 'loading'};
-  return <RiskPredictionView state={visible} sample={selected} token={token} now={now}
+  return <RiskPredictionView state={visible} sample={selected} token={token} tokenOptional={TOKEN_OPTIONAL} now={now}
     onToken={setToken}
     onPredict={workspace.predict} onReading={workspace.loadReading} onHistory={workspace.loadHistory} />;
 }

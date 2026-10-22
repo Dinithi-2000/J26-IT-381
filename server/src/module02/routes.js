@@ -5,7 +5,14 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as models from './models.js';
 import { isDatabaseConnected } from '../config/db.js';
-import { operatorAuth, deviceAuth } from './auth.js';
+import { operatorAuth, deviceAuth, localUploadAllowed } from './auth.js';
+// Devices send their own key; photos added manually (this computer, or with the operator token)
+// are recorded under MANUAL-UPLOAD.
+const sampleImageAuth = (req,res,next) => {
+  if (req.get('x-device-id')) return deviceAuth(req,res,next);
+  const manual = () => { req.deviceId = 'MANUAL-UPLOAD'; next(); };
+  return localUploadAllowed(req) ? manual() : operatorAuth(req,res,manual);
+};
 import { fail, id, date, number, object, sampleInput, readingInput, pagination, dateFilter } from './validation.js';
 export const uploadDirectory = () => resolve(process.env.MODULE02_UPLOAD_DIR || fileURLToPath(new URL('../../storage/module02', import.meta.url)));
 const imageOutput = row => ({ ...row.toObject(), url: `/api/module-02/images/${row._id}/file` });
@@ -56,7 +63,7 @@ export function createModule02Router({ Sample = models.Sample, SensorReading = m
     if (req.query.order !== undefined && !['asc','desc'].includes(req.query.order)) fail(400,'VALIDATION_ERROR','order must be asc or desc.');
     const row = await sample(req.params.sampleId); await list(SensorReading,{sampleId:row.sampleId,...dateFilter(req.query)},req,res,'recordedAt',row=>row,req.query.order === 'asc' ? 1 : -1);
   });
-  router.post('/module-02/images',deviceAuth,express.raw({type:['image/jpeg','image/png'],limit:'5mb'}),async (req,res) => {
+  router.post('/module-02/images',sampleImageAuth,express.raw({type:['image/jpeg','image/png'],limit:'5mb'}),async (req,res) => {
     const row = await sample(req.query.sampleId,true);
     const recordedAt = date(req.query.recordedAt,'recordedAt');
     if (recordedAt < row.storageStartDate || recordedAt > new Date(Date.now()+300000)) fail(400,'VALIDATION_ERROR','Image timestamp is outside the allowed storage period.');

@@ -9,6 +9,7 @@
 #include <esp_system.h>
 #include <esp_sntp.h>
 #include <cJSON.h> // bundled with the ESP32 core; no ArduinoJson dependency
+#include <Adafruit_TCS34725.h> // Library Manager: "Adafruit TCS34725"
 #include <atomic>
 #include <time.h>
 #include <math.h>
@@ -19,6 +20,10 @@
 #define LCD_SCL 9
 #define HX711_DT 16
 #define HX711_SCK 17
+// TCS34725 colour sensor on its own I2C bus (Wire1), separate from the LCD.
+#define COLOR_SDA 5
+#define COLOR_SCL 4
+#define COLOR_LED_PIN 6 // TCS34725 LED pin; on only while a colour reading is taken
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 HX711 scale;
@@ -27,12 +32,21 @@ constexpr uint32_t UPLOAD_INTERVAL_MS = 15000;
 constexpr uint32_t MAX_PENDING_AGE_MS = 120000;
 constexpr uint32_t SENSOR_GAP_MS = 1500;
 constexpr char CALIBRATION_PROTOCOL[] = "HX711-112g-reference-check-fixed-factor-v1";
+// TCS34725 settings sent with every colour reading (the server validates them).
+constexpr uint8_t COLOR_GAIN = 4;                 // 1, 4, 16 or 60
+constexpr double COLOR_INTEGRATION_MS = 153.6;    // matches TCS34725_INTEGRATIONTIME_154MS
+constexpr double COLOR_DISTANCE_MM = 10;          // fixed sensor-to-quill distance of your holder
+constexpr char COLOR_LIGHTING[] = "TCS34725 onboard LED, black cover";
+Adafruit_TCS34725 tcs(TCS34725_INTEGRATIONTIME_154MS, TCS34725_GAIN_4X);
+bool colorSensorReady = false;
 
 struct Measurement {
   int32_t raw[CAPTURE_SAMPLES];
   int32_t tareRaw;
   time_t recordedAt, tareAt, calibratedAt;
   uint32_t capturedMillis, generation;
+  bool colorOk;
+  uint16_t red, green, blue, clear;
   char id[56];
 };
 
@@ -90,10 +104,28 @@ void startTare() {
   Serial.println("[TARE] Empty the tray now. Waiting 3 seconds, then capturing 20 actual raw counts.");
 }
 
+// LED on -> one TCS34725 reading -> LED off. Rejects dark or saturated readings,
+// which the server would refuse anyway.
+bool readColor(uint16_t& red, uint16_t& green, uint16_t& blue, uint16_t& clear) {
+  if (!colorSensorReady) return false;
+  digitalWrite(COLOR_LED_PIN, HIGH);
+  delay(60); // let the LED settle
+  tcs.getRawData(&red, &green, &blue, &clear); // waits one integration period
+  digitalWrite(COLOR_LED_PIN, LOW);
+  const uint16_t highest = max(max(red, green), max(blue, clear));
+  return clear > 0 && highest < 65535;
+}
+
 void handleCommand() {
   while (Serial.available()) {
     const char command = toupper(Serial.read());
     if (command == 'T') startTare();
+    else if (command == 'R') {
+      uint16_t r, g, b, c;
+      if (readColor(r, g, b, c)) Serial.printf("[COLOR] raw R=%u G=%u B=%u C=%u -> display RGB %d/%d/%d\n", r, g, b, c,
+        (int)lround(fmin(255.0, 255.0 * r / c)), (int)lround(fmin(255.0, 255.0 * g / c)), (int)lround(fmin(255.0, 255.0 * b / c)));
+      else Serial.println(colorSensorReady ? "[COLOR] Too dark or saturated. Check the cover, LED and distance." : "[COLOR] TCS34725 not found. Check VIN, GND, SDA=5, SCL=4.");
+    }
     else if (command == 'P') {
       invalidatePending(); Serial.println("[UPLOAD] Paused. LCD continues.");
     } else if (command == 'C') {
@@ -126,7 +158,7 @@ String payloadFor(const Measurement& m) {
   cJSON_AddStringToObject(root, "dataOrigin", "REAL_SENSOR");
   cJSON* status = cJSON_AddObjectToObject(root, "sensorStatus");
   cJSON_AddStringToObject(status, "weight", "online");
-  cJSON_AddStringToObject(status, "color", "offline");
+  cJSON_AddStringToObject(status, "color", m.colorOk ? "online" : "offline");
   cJSON* raw = cJSON_AddArrayToObject(root, "rawWeightSamples");
   for (size_t i = 0; i < CAPTURE_SAMPLES; ++i) cJSON_AddItemToArray(raw, cJSON_CreateNumber(m.raw[i]));
   // Do not send the LCD's near-zero clamp. Node derives unrounded grams itself.
@@ -139,10 +171,20 @@ String payloadFor(const Measurement& m) {
   cJSON_AddNumberToObject(calibration, "countsPerGram", COUNTS_PER_GRAM);
   cJSON_AddNumberToObject(calibration, "referenceMassGrams", REFERENCE_MASS_GRAMS);
   cJSON_AddNumberToObject(calibration, "stabilityLimitGrams", STABILITY_LIMIT_GRAMS);
+  if (m.colorOk) {
+    cJSON* rgb = cJSON_AddObjectToObject(root, "rgbRaw");
+    cJSON_AddNumberToObject(rgb, "red", m.red); cJSON_AddNumberToObject(rgb, "green", m.green);
+    cJSON_AddNumberToObject(rgb, "blue", m.blue); cJSON_AddNumberToObject(rgb, "clear", m.clear);
+    cJSON* settings = cJSON_AddObjectToObject(root, "colorSettings");
+    cJSON_AddNumberToObject(settings, "gain", COLOR_GAIN);
+    cJSON_AddNumberToObject(settings, "integrationTimeMs", COLOR_INTEGRATION_MS);
+    cJSON_AddStringToObject(settings, "lighting", COLOR_LIGHTING);
+    cJSON_AddNumberToObject(settings, "distanceMm", COLOR_DISTANCE_MM);
+  }
   cJSON_AddNullToObject(root, "temperatureC");
   cJSON_AddNullToObject(root, "relativeHumidityPercent");
-  // rgbRaw/colorSettings and environment are omitted. Node stores missing RGB,
-  // temperature, humidity and gas as null; gasResistanceOhms is not an allowed input.
+  // Environment is omitted. Node stores missing temperature, humidity and gas as null;
+  // gasResistanceOhms is not an allowed input. Node derives display RGB from rgbRaw.
   char* bytes = cJSON_PrintUnformatted(root);
   const String body = bytes ? String(bytes) : String("");
   if (bytes) cJSON_free(bytes);
@@ -274,6 +316,10 @@ void setup() {
   lcd.init(); lcd.backlight();
   lcd.setCursor(0, 0); lcd.print("CinnaSense AI");
   lcd.setCursor(0, 1); lcd.print("Starting..."); delay(1500);
+  pinMode(COLOR_LED_PIN, OUTPUT); digitalWrite(COLOR_LED_PIN, LOW);
+  Wire1.begin(COLOR_SDA, COLOR_SCL);
+  colorSensorReady = tcs.begin(TCS34725_ADDRESS, &Wire1);
+  Serial.println(colorSensorReady ? "[COLOR] TCS34725 found at 0x29." : "[COLOR] TCS34725 not found. Weight uploads continue with color offline.");
   scale.begin(HX711_DT, HX711_SCK);
   scale.set_scale(static_cast<float>(COUNTS_PER_GRAM));
   uint8_t randomId[16]; esp_fill_random(randomId, sizeof(randomId));
@@ -285,7 +331,7 @@ void setup() {
     configurationReady = false; Serial.println("[CONFIG] Network task unavailable. LCD-only operation.");
   }
   if (!configurationReady) Serial.println("[CONFIG] Configure secrets.h with hotspot, device key and an actual registered sample. Uploads disabled.");
-  Serial.println("[COMMANDS] T=empty-tray tare; C=112.0g reference check; S=start uploads; P=pause.");
+  Serial.println("[COMMANDS] T=empty-tray tare; C=112.0g reference check; S=start uploads; P=pause; R=test colour sensor.");
   Serial.printf("Calibration factor: %.4f (fixed)\n", COUNTS_PER_GRAM);
   startTare();
 }
@@ -340,6 +386,8 @@ void loop() {
             m.tareRaw = tareRaw; m.tareAt = tareAt; m.calibratedAt = calibratedAt;
             m.recordedAt = capturedAt; m.capturedMillis = now; m.generation = generation.load();
             snprintf(m.id, sizeof(m.id), "W-%s-%08lx", bootId, static_cast<unsigned long>(++measurementSequence));
+            m.colorOk = readColor(m.red, m.green, m.blue, m.clear);
+            if (colorSensorReady && !m.colorOk) Serial.println("[COLOR] Unusable colour reading; uploading weight with color offline.");
             if (xQueueSend(uploadQueue, &m, 0) != pdTRUE) Serial.println("[UPLOAD] Pending queue full; this capture skipped. LCD continues.");
           }
         }

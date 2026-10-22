@@ -205,3 +205,26 @@ paths may differ on another laptop. API implementation is unchanged in
 
 Primary API references: [Bogde HX711](https://github.com/bogde/HX711),
 [Espressif HTTPClient](https://github.com/espressif/arduino-esp32/blob/master/libraries/HTTPClient/src/HTTPClient.h).
+
+## TCS34725 colour sensor (optional)
+
+Install **Adafruit TCS34725** from the Library Manager (it also installs Adafruit BusIO).
+
+| TCS34725 | ESP32-S3 |
+| --- | --- |
+| VIN | 3.3V |
+| GND | GND |
+| SDA | GPIO 5 (`COLOR_SDA`, own I²C bus `Wire1`) |
+| SCL | GPIO 4 (`COLOR_SCL`) |
+| LED | GPIO 6 (`COLOR_LED_PIN`) |
+
+No extra resistors are needed for a module board. Mount the sensor in a fixed holder,
+`COLOR_DISTANCE_MM` (default 10 mm) from the quill, under a black cover. The LED is on only
+while a reading is taken.
+
+- On boot, Serial shows `[COLOR] TCS34725 found at 0x29.`
+- Send **`R`** to print one reading, e.g. `[COLOR] raw R=812 G=566 B=371 C=1350 -> display RGB 153/107/70`.
+- Each upload then sends `sensorStatus.color = "online"` with `rgbRaw` and `colorSettings`
+  (gain 4x, 153.6 ms, lighting, distance). Node derives display RGB as `channel / clear × 255`.
+- If the sensor is missing, too dark or saturated, the weight still uploads with colour offline.
+  If `R` reports saturation, lower `COLOR_GAIN` and the matching `TCS34725_GAIN_*` value together.

@@ -57,8 +57,9 @@ export function readingCondition(reading, deviceStatus, now = Date.now()) {
 
 // A small external store makes request cancellation, sample switches and retries
 // testable without changing the shared quality or Model 01 providers.
-export function createRiskWorkspace(service) {
+export function createRiskWorkspace(service, {tokenOptional = false} = {}) {
   let state = empty(), token = '', sample = null, generation = 0;
+  const authorized = () => tokenOptional || !!token;
   const listeners = new Set(), requests = {};
   const update = change => {state = {...state, ...change}; listeners.forEach(listener => listener());};
   const cancel = () => {generation++; Object.values(requests).forEach(controller => controller.abort());};
@@ -80,7 +81,7 @@ export function createRiskWorkspace(service) {
   }
 
   async function loadHistory(page = 1) {
-    if (!sample || state.demo || !token || state.predictionStatus === 'loading') return;
+    if (!sample || state.demo || !authorized() || state.predictionStatus === 'loading') return;
     const controller = start('history'), version = generation, sampleId = sample.id;
     update({historyStatus: 'loading', historyError: ''});
     try {
@@ -96,7 +97,7 @@ export function createRiskWorkspace(service) {
 
   async function predict() {
     if (state.predictionStatus === 'loading') return;
-    if (!sample || state.demo || !token || !state.reading || state.readingStatus !== 'ready') {
+    if (!sample || state.demo || !authorized() || !state.reading || state.readingStatus !== 'ready') {
       update({error: 'Select a registered sample, load its stored sensor reading, and enter your operator token.'}); return;
     }
     const condition = readingCondition(state.reading, state.deviceStatus);
@@ -122,13 +123,13 @@ export function createRiskWorkspace(service) {
     getSnapshot: () => state,
     selectSample(next, demo = false) {
       cancel(); sample = next;
-      update({...empty(), sampleId: next?.id || null, demo, hasToken: !!token});
-      if (next && !demo) {void loadReading(); if (token) void loadHistory();}
+      update({...empty(), sampleId: next?.id || null, demo, hasToken: authorized()});
+      if (next && !demo) {void loadReading(); if (authorized()) void loadHistory();}
     },
     setToken(value) {
       if (value === token) return;
       requests.history?.abort(); requests.prediction?.abort(); token = value;
-      update({hasToken: !!token, historyStatus: 'locked', history: [], pagination: emptyPage(), result: null,
+      update({hasToken: authorized(), historyStatus: 'locked', history: [], pagination: emptyPage(), result: null,
         predictionStatus: 'idle', error: '', historyError: '', notice: ''});
     },
     loadReading, loadHistory, predict,

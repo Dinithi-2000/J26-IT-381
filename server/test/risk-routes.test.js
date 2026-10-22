@@ -56,6 +56,7 @@ function repository() {
 
 async function fixture(t, changes = {}) {
   const env = {...process.env};
+  delete process.env.MODULE02_LOCAL_NO_TOKEN; delete process.env.MODULE02_LOCAL_UPLOADS_WITHOUT_TOKEN;
   process.env.MODULE02_OPERATOR_TOKEN = operator;
   process.env.MODULE02_RISK_MAX_READING_AGE_SECONDS = '300';
   const state = {sample: sample(), reading: reading(), clock: fixedNow, calls: [], category: 'Medium', ready: true};

@@ -68,25 +68,17 @@ export function MeasurementHistory({ sample }) {
   </Panel>;
 }
 
-// Example quill photographs shown when a sample has no stored image of its own.
-export const EXAMPLE_IMAGES = {
-  Baseline: { src: '/images/cinnamon-example-baseline.jpg', timestamp: '2026-10-15T14:50:30+05:30' },
-  Current: { src: '/images/cinnamon-example-current.jpg', timestamp: '2026-10-15T15:02:37+05:30' },
-};
-
-export function ImageComparison({ sample, examples }) {
+export function ImageComparison({ sample }) {
   const { demoEnabled } = useQuality();
   const baseline = sample?.images.find(image => image.role === 'Baseline');
   const current = sample?.images.find(image => image.role === 'Current');
   return <div className="image-comparison">{[['Baseline', baseline], ['Current', current]].map(([role, image]) => {
-    const example = !image && examples?.[role];
     return <figure key={role}>
-      {image ? <AssetImage src={image.src} fallback={null} alt={`${role} ${image.kind === 'illustration' ? 'cinnamon illustration, not a captured sample photograph' : 'cinnamon sample photograph'}`} /> :
-        example ? <AssetImage src={example.src} fallback={null} alt={`Example cinnamon quill photograph (${role.toLowerCase()} view), not a stored sample image`} /> :
-        <div className="image-placeholder"><Icon name="camera" size={30} /><span>No {role.toLowerCase()} image</span></div>}
-      <figcaption><strong>{role} reference</strong><span>{example ? 'Example photo' : sample?.id || 'No sample selected'}</span>
-        <span>{image ? formatTimestamp(image.timestamp) : example ? formatTimestamp(example.timestamp) : 'Capture not connected'}</span>
-        {image && <span className="image-label">{demoEnabled ? 'DEMO DATA · ' : ''}{image.kind === 'illustration' ? 'Illustration, not ESP32-CAM imagery' : 'Sample image record'}</span>}
+      {image ? <AssetImage src={image.src} fallback={null} alt={`${role} cinnamon sample photograph`} /> :
+        <div className="image-placeholder"><Icon name="camera" size={30} /><span>No {role === 'Baseline' ? 'first' : 'current'} photo yet</span></div>}
+      <figcaption><strong>{role === 'Baseline' ? 'First photo (baseline)' : 'Latest photo (current)'}</strong>
+        <span>{image ? formatTimestamp(image.timestamp) : sample?.id || 'No sample selected'}</span>
+        {image && demoEnabled && <span className="image-label">DEMO DATA</span>}
       </figcaption>
     </figure>;
   })}</div>;

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuality } from '../components/QualityProvider';
 import { DataState, Panel } from '../components/QualityUI';
-import { useOperatorToken } from '../services/operatorToken';
+import { TOKEN_OPTIONAL, useOperatorToken } from '../services/operatorToken';
+import { uploadSamplePhoto } from '../services/sampleImages';
 
 const initialForm = { id: '', batchId: '', grade: '', storage: '', storageStartDate: '', initialWeight: '' };
 export default function SampleManagement() {
@@ -11,6 +12,7 @@ export default function SampleManagement() {
   const [error, setError] = useState('');
   const [token,setToken] = useOperatorToken();
   const [saving,setSaving] = useState(false);
+  const [photo,setPhoto] = useState(null);
   const navigate = useNavigate();
   async function submit(event) {
     event.preventDefault();
@@ -25,6 +27,10 @@ export default function SampleManagement() {
     try {
       setSaving(true);
       const sample = await registerSample(input,token);
+      if (photo && !demoEnabled) {
+        try { await uploadSamplePhoto(sample.id, photo, 'Baseline', token); }
+        catch (failure) { window.alert(`Sample registered, but the first photo was not saved: ${failure.message} Add it on the sample page.`); }
+      }
       navigate(`/module-02/samples/${encodeURIComponent(sample.id)}`);
     } catch (failure) { setError(failure.message); } finally { setSaving(false); }
   }
@@ -38,8 +44,8 @@ export default function SampleManagement() {
       <span>{sample.historyTotal ?? (sample.detailsLoaded || demoEnabled ? sample.records.length : "Not loaded")} measurements · {sample.imageTotal ?? (sample.detailsLoaded || demoEnabled ? sample.images.length : "Not loaded")} image references</span>
     </Link>)}</div>}
     <Panel title={demoEnabled ? "Register a demonstration sample" : "Register a stored cinnamon sample"} eyebrow="SAMPLE REGISTRATION" className="registration-panel">
-      <p>{demoEnabled ? "Demo registrations stay in memory and create no database record." : "Create a persistent sample record. An operator token is required; it is kept only in this form memory."}</p>
-      {!demoEnabled && <label>Operator token<input type="password" autoComplete="off" value={token} onChange={event=>setToken(event.target.value)} /></label>}
+      <p>{demoEnabled ? "Demo registrations stay in memory and create no database record." : "Create a persistent sample record."}</p>
+      {!demoEnabled && !TOKEN_OPTIONAL && <label>Operator token<input type="password" autoComplete="off" value={token} onChange={event=>setToken(event.target.value)} /></label>}
       <form onSubmit={submit} className="sample-form">
         <fieldset disabled={saving}>
           <legend className="sr-only">Sample registration</legend>
@@ -55,6 +61,9 @@ export default function SampleManagement() {
                 onChange={event => setForm(previous => ({ ...previous, [name]: event.target.value }))} />
             </label>)}
           </div>
+          {!demoEnabled && <label htmlFor="register-photo">First photo of the sample (optional)
+            <input id="register-photo" type="file" accept="image/jpeg,image/png" onChange={event => setPhoto(event.target.files?.[0] || null)} />
+          </label>}
           <button type="submit" className="button">{saving ? "Saving..." : demoEnabled ? "Create local demo sample" : "Register sample"}</button>
         </fieldset>
         {error && <p className="form-error" role="alert">{error}</p>}
