@@ -128,6 +128,11 @@ node server/tools/module02-verify-atlas.mjs
   Tokens are deliberately forgotten on refresh and are never saved in React.
 - **Risk inputs unavailable:** CIN-PP1-003 has missing environmental fields;
   select CIN-PP1-001. Genuine readings must meet the backend freshness rules.
+- **"This photo does not look like a cinnamon quill":** the cinnamon check rejected
+  the photo (similarity to the 250 known cinnamon photos below 0.55). Use a clear
+  cinnamon photo. The check needs `models/cinnamon_reference.npz`; if it is missing
+  (`/health` shows `"cinnamonCheck":"off"`), rebuild it from `ml-module02` with
+  `python -m cinnasense_quality.reference --data "C:\Users\USER\Downloads\OneDrive_1_10-20-2026"`.
 - **Photo result disappears on refresh:** expected for preview. Only an explicitly
   saved image associated with a real registered record has persistent history.
 
