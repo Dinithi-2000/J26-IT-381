@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test": "node --test --test-concurrency=1 --test-timeout=30000 test/risk-daily.test.js test/module02.test.js test/quality-client.test.js test/mongo.integration.test.js test/image-classification.test.js test/risk-client.test.js test/risk-routes.test.js test/risk-mongo.integration.test.js",
+    "test:risk": "node --test --test-concurrency=1 --test-timeout=30000 test/risk-client.test.js test/risk-routes.test.js test/risk-mongo.integration.test.js",
+    "test:e2e": "node --test --test-concurrency=1 --test-timeout=60000 test/risk-e2e.integration.test.js",
+    "test:images": "node --test test/image-classification.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

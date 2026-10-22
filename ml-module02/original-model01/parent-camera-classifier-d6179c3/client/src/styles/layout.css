@@ -1,0 +1,49 @@
+/* Shared page geometry. Keep prose measures in component styles; widen surfaces. */
+:root {
+  --page-gutter: clamp(16px, 2vw, 40px);
+  --page-width: 1800px;
+  --section-inset: max(var(--page-gutter), calc((100% - var(--page-width)) / 2));
+}
+
+.section, .intro-strip, .page-shell, .hero-copy, .price-module .app {
+  width: calc(100% - var(--page-gutter) * 2);
+  max-width: var(--page-width);
+  margin-inline: auto;
+  padding-inline: 0;
+  min-width: 0;
+}
+
+/* These backgrounds bleed to the viewport while their content stays aligned. */
+.workflow.section, .objectives.section, .about.section {
+  width: 100%;
+  max-width: none;
+  padding-inline: var(--section-inset);
+}
+.hero-bottom { left: var(--section-inset); right: var(--section-inset); }
+.hero-field-note { right: var(--section-inset); }
+
+.site-header { padding-inline: 0; }
+.site-header .nav-inner, .footer-surface, .footer-closing-note {
+  width: calc(100% - var(--page-gutter) * 2);
+  max-width: var(--page-width);
+  margin-inline: auto;
+}
+.site-footer { padding-inline: 0; }
+.footer-surface { padding-inline: clamp(22px, 2.5vw, 44px); }
+
+/* Dashboard widths remain fluid, including when the sidebar is collapsed. */
+.quality-content {
+  min-width: 0;
+  width: 100%;
+  max-width: none;
+  padding-inline: clamp(16px, 2vw, 40px);
+}
+.module-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.module-grid > *, .technology-tiles > *, .team-grid > * { min-width: 0; }
+
+@media (max-width: 1100px) {
+  .module-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .module-grid { grid-template-columns: minmax(0, 1fr); }
+}

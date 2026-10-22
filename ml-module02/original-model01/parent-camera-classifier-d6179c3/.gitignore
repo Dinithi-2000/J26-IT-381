@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+*.log
+__pycache__/
+.venv/
+
+server/storage/
+server/uploads/
+firmware/**/secrets.h
+ml-module02/data/
+ml-module02/experiments/

@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { QualityProvider, useQuality } from './QualityProvider';
 import Icon from './Icon';
+import Module02HardwareStatus from './Module02HardwareStatus';
 
 const links = [
-  ['/module-02', 'Quality overview', 'overview'], ['/module-02/samples', 'Sample library', 'sample'],
+  ['/module-02', 'Quality overview', 'overview'], ['/module-02/samples', 'Cinnamon records', 'sample'],
   ['/module-02/images', 'Image analysis', 'image'], ['/module-02/predictions', 'AI predictions', 'sparkles'],
 ];
 function QualityShell() {
-  const { demoEnabled, setDemoEnabled, status, samples } = useQuality();
+  const { demoEnabled, status, samples, hardware, selected } = useQuality();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 1100px)').matches);
@@ -62,19 +63,13 @@ function QualityShell() {
           <Icon name={icon} size={20} /><span className="sidebar-copy">{label}</span>{index === 1 && <span className="sidebar-count sidebar-copy">{samples.length}</span>}
         </NavLink>)}
       </nav>
-      <div className="sidebar-device-panel"><div className="sidebar-device-heading"><Icon name="offline" size={18} /><strong className="sidebar-copy">Sensors offline</strong></div>
-        <div className="sidebar-copy"><p>No hardware integration</p><div className="device-row"><span className="connection-dot offline" />ESP32-S3<span>Not connected</span></div><div className="device-row"><span className="connection-dot offline" />ESP32-CAM<span>Not connected</span></div></div>
-      </div>
+      {pathname !== "/module-02/images" && <Module02HardwareStatus hardware={hardware} sampleId={selected?.id} />}
       <div className="sidebar-research-note sidebar-copy"><span className="sidebar-note-icon"><Icon name="shield" size={24} /></span><strong>Evidence before inference.</strong><p>Quality indicators inform research. Validated models must come before predictions.</p><Link to="/module-02/predictions">Model availability <Icon name="external" size={14} /></Link></div>
       <Link className="sidebar-back" to="/"><Icon name="arrow" size={17} /><span className="sidebar-copy">Back to CinnaSense</span></Link>
     </aside>
     <div className="quality-content" inert={isMobile && mobileOpen ? true : undefined}>
       <div className="workspace-topbar"><div><button className="workspace-mobile-button" ref={drawerTrigger} onClick={() => setMobileOpen(true)} aria-label="Open research sidebar" aria-expanded={mobileOpen} aria-controls="quality-sidebar"><Icon name="menu" size={19} /></button><Link to="/">Platform</Link><span>/</span><span>Stored cinnamon quality</span></div><span className={`data-badge ${demoEnabled ? 'demo' : 'offline'}`}><span className="connection-dot" />{stateLabel}</span></div>
-      <div className="dashboard-heading"><div><p className="eyebrow">MODULE 02 / QUALITY INTELLIGENCE</p><h1>Stored quality, <em>in focus.</em></h1><p className="lead">A closer look at cinnamon. Every sample, signal, and observation.</p></div><span className="workspace-heading-icon"><Icon name="sample" size={34} /></span></div>
-      <div className="demo-banner demo-controls"><div className="demo-banner-copy"><Icon name="info" size={20} /><div><strong>{demoEnabled ? 'DEMO DATA — illustrative research records' : 'Your workspace is ready. Sensors are not connected.'}</strong>
-        <p>{demoEnabled ? 'Synthetic readings and image metadata. No live sensors, image analysis, or trained degradation model.' : 'Enable demo data to explore the interface. No live measurements or AI predictions are available.'}</p></div></div>
-        <label className="demo-switch"><input type="checkbox" checked={demoEnabled} onChange={event => setDemoEnabled(event.target.checked)} /><span className="switch-track" aria-hidden="true" /><span>Demo data</span></label>
-      </div>
+      <div className="dashboard-heading"><div><p className="eyebrow">MODULE 02 / QUALITY INTELLIGENCE</p><h1>Stored quality, <em>in focus.</em></h1><p className="lead">Cinnamon quality, sensor insights, and storage intelligence.</p></div><span className="workspace-heading-icon"><Icon name="sample" size={34} /></span></div>
       <Outlet />
     </div>
   </main>;

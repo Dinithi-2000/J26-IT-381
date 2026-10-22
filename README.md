@@ -1,3 +1,7 @@
+> ESP32-CAM + existing Model 01 setup: [local model placement, camera configuration, exact run commands and tests](ml-module02/ESP32_CAM_INTEGRATION.md). Firmware is unchanged. Copy the trained Colab artifact locally; no retraining or Drive download is performed by the integration.
+
+> Current Module 02 setup: [storage-quality backend](MODULE02_API.md) and [image-condition training, review, API and dashboard guide](ml-module02/IMAGE_CONDITION_GUIDE.md). Both are included alongside Module 01 and the existing Module 04. Dataset label conflicts still require review before training the new image-condition pipeline.
+
 # CinnaSense AI — Phase 1
 
 **Smart Cinnamon Processing & Quality Intelligence Platform**  
@@ -213,6 +217,9 @@ The existing layout and botanical palette are retained. Text now uses a shared r
 
 Only task-owned temporary browser profiles and QA artifacts were removed when disk space prevented saving audit screenshots/reports. Unrelated files were not removed.
 
+
+Module 02 backend and API setup: see [MODULE02_API.md](MODULE02_API.md). This supersedes earlier frontend-only integration notes for the storage-quality module.
+
 ## Module 01 dehydration research workspace
 
 Module 01 now follows the existing Module 02 workspace structure and design system. The shared website header, footer, homepage workflow, other modules, server and ML services are preserved. No UI or chart dependency was added.
@@ -237,3 +244,16 @@ Controls send no hardware commands. Offline settings are disabled; demo relay sw
 - Adapter/fixture consistency checks passed: the default adapter returns no data; historical endpoints agree with telemetry/session values; duration formatting handles unavailable data.
 - Desktop/mobile screenshots were reviewed. No application console errors or uncaught exceptions were observed, and no hardware/API requests were made. The pre-existing global `/favicon.ico` request returns 404; shared branding/metadata files were not changed.
 - Module 02 components/styles, the shared header/footer, other research modules and backend/ML sources are unchanged. Actual hardware commands and model inference cannot be tested because neither integration is configured.
+
+
+Module 02 image-condition prototype: see [training, dataset review, API and dashboard setup](ml-module02/IMAGE_CONDITION_GUIDE.md). The local data audit must be resolved before claiming a trained model.
+
+## Preserved original Model 01 research
+
+The current application remains the main development project. Original nested
+research, stash/index snapshots, historical trained-model variants, notebooks
+and ESP32-CAM firmware are preserved separately in
+[the Model 01 research archive](ml-module02/original-model01/README.md).
+See [the consolidation report](CONSOLIDATION_REPORT.md) for verified external
+backups, reconciliation decisions and missing-artifact limitations. The nested
+repository is retained unchanged; no active model was replaced.

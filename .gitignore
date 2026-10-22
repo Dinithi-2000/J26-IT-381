@@ -4,3 +4,27 @@ dist/
 *.log
 __pycache__/
 .venv/
+
+server/storage/
+ml-module02/data/
+ml-module02/experiments/
+
+# Module 02 training artifacts, private photos, local storage
+ml-module02/artifacts/
+ml-module02/data/
+ml-module02/*.egg-info/
+ml-module02/src/*.egg-info/
+server/storage/
+
+.venv-quality/
+
+# Local trained quality artifacts and environment folders
+ml-module02/models/
+*.keras
+*.h5
+.pytest_cache/
+
+state/local-runtime/
+
+# Local trusted Model 02 artifact (not committed)
+/ml-service/models/*.joblib

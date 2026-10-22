@@ -1,0 +1,19 @@
+{
+  "name": "cinnamon-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace server\" \"npm run dev --workspace client\"",
+    "build": "npm run build --workspace client",
+    "start": "npm run start --workspace server",
+    "install:all": "npm install",
+    "dev:ml": "python -m uvicorn app.main:app --reload --port 8000 --app-dir ml-service"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

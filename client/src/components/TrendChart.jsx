@@ -28,7 +28,7 @@ export default function TrendChart({ records, series, label }) {
               {series.length === 1 && valid.length > 1 && <polygon points={`${x(valid[0].day)},145 ${points} ${x(valid.at(-1).day)},145`} fill={`url(#${gradientId})`} />}
               <polyline points={points} fill="none" stroke={color(item, index)} strokeWidth="2.5" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
               {valid.map(record => <circle key={record.timestamp} cx={x(record.day)} cy={y(item.read(record))} r="3.5" fill="white" stroke={color(item, index)} strokeWidth="2" vectorEffect="non-scaling-stroke">
-                <title>{item.name}: {item.read(record)} · Day {record.day}</title></circle>)}
+                <title>{`${item.name}: ${item.read(record)} · ${record.timestamp} · Day ${record.day}`}</title></circle>)}
             </g>;
           })}
         </svg>

@@ -24,8 +24,8 @@ export function DataState() {
   if (status === 'demo' || status === 'ready') return null;
   const content = {
     loading: ['Checking data availability', 'Please wait while the frontend checks its configured data source.'],
-    disconnected: ['Your research workspace is ready.', 'ESP32-S3 sensing and ESP32-CAM image capture are not integrated. Enable demo data above to explore synthetic samples.'],
-    empty: ['No samples available', 'The configured data source returned an empty sample list.'],
+    disconnected: ['Quality service unavailable', 'The quality backend could not be reached. Check the backend and its Atlas connection.'],
+    empty: ['No monitoring records yet', 'Register cinnamon to start tracking storage quality. Measurements appear when sensor readings are received.'],
     error: ['Unable to load quality data', error || 'The data source could not be read. Try again.'],
   }[status];
   return <section className={`panel data-state state-${status}`} role="status" aria-live="polite" aria-busy={status === 'loading'}>
@@ -39,14 +39,14 @@ export function SampleSelector() {
   const { samples, selected, setSelectedId, demoEnabled } = useQuality();
   if (!selected) return null;
   return <section className="sample-toolbar" aria-label="Sample selection">
-    <label htmlFor="quality-sample"><span><Icon name="sample" size={15} /> Cinnamon sample ID</span>
+    <label htmlFor="quality-sample"><span><Icon name="sample" size={15} /> Cinnamon ID</span>
       <select id="quality-sample" value={selected.id} onChange={event => setSelectedId(event.target.value)}>
         {samples.map(sample => <option key={sample.id}>{sample.id}</option>)}
       </select>
     </label>
     <div><span>Batch ID</span><strong>{selected.batchId}</strong></div>
     <div><span>Storage setting{demoEnabled ? ' · demo' : ''}</span><strong>{selected.storage}</strong></div>
-    <div><span>Sample record</span><Link className="inline-link" to={`/module-02/samples/${encodeURIComponent(selected.id)}`}>View sample details <Icon name="external" size={14} /></Link></div>
+    <div><span>Cinnamon record</span><Link className="inline-link" to={`/module-02/samples/${encodeURIComponent(selected.id)}`}>View details <Icon name="external" size={14} /></Link></div>
   </section>;
 }
 
@@ -54,6 +54,7 @@ export function MeasurementHistory({ sample }) {
   const { demoEnabled } = useQuality();
   return <Panel title="The details behind the trends." eyebrow="SAMPLE MEASUREMENT HISTORY"
     badge={`${sample.records.length} ${demoEnabled ? 'DEMO ' : ''}RECORDS`} className="measurement-history">
+    {sample.historyTotal > 200 && <p>Showing the latest 200 of {sample.historyTotal} readings. Older records are available through the paginated API.</p>}
     {!sample.records.length ? <p>No measurements recorded for this sample. Registration does not create sensor readings.</p> :
       <div className="table-wrap" tabIndex="0" role="region" aria-label={`Measurement history for ${sample.id}`}><table>
         <caption>{demoEnabled ? 'DEMO DATA · ' : ''}{sample.id} · timestamps shown in Sri Lanka time</caption>
@@ -71,13 +72,14 @@ export function ImageComparison({ sample }) {
   const { demoEnabled } = useQuality();
   const baseline = sample?.images.find(image => image.role === 'Baseline');
   const current = sample?.images.find(image => image.role === 'Current');
-  return <div className="image-comparison">{[['Baseline', baseline], ['Current', current]].map(([role, image]) =>
-    <figure key={role}>
-      {image ? <AssetImage src={image.src} fallback={null} alt={`${role} ${image.kind === 'illustration' ? 'cinnamon illustration, not a captured sample photograph' : 'cinnamon sample photograph'}`} /> :
-        <div className="image-placeholder"><Icon name="camera" size={30} /><span>No {role.toLowerCase()} image</span></div>}
-      <figcaption><strong>{role} reference</strong><span>{sample?.id || 'No sample selected'}</span>
-        <span>{image ? formatTimestamp(image.timestamp) : 'Capture not connected'}</span>
-        {image && <span className="image-label">{demoEnabled ? 'DEMO DATA · ' : ''}{image.kind === 'illustration' ? 'Illustration, not ESP32-CAM imagery' : 'Sample image record'}</span>}
+  return <div className="image-comparison">{[['Baseline', baseline], ['Current', current]].map(([role, image]) => {
+    return <figure key={role}>
+      {image ? <AssetImage src={image.src} fallback={null} alt={`${role} cinnamon sample photograph`} /> :
+        <div className="image-placeholder"><Icon name="camera" size={30} /><span>No {role === 'Baseline' ? 'first' : 'current'} photo yet</span></div>}
+      <figcaption><strong>{role === 'Baseline' ? 'First photo (baseline)' : 'Latest photo (current)'}</strong>
+        <span>{image ? formatTimestamp(image.timestamp) : sample?.id || 'No sample selected'}</span>
+        {image && demoEnabled && <span className="image-label">DEMO DATA</span>}
       </figcaption>
-    </figure>)}</div>;
+    </figure>;
+  })}</div>;
 }

@@ -2,14 +2,19 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuality } from '../components/QualityProvider';
 import { DataState, Panel } from '../components/QualityUI';
+import { TOKEN_OPTIONAL, useOperatorToken } from '../services/operatorToken';
+import { uploadSamplePhoto } from '../services/sampleImages';
 
 const initialForm = { id: '', batchId: '', grade: '', storage: '', storageStartDate: '', initialWeight: '' };
 export default function SampleManagement() {
   const { demoEnabled, samples, registerSample } = useQuality();
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState('');
+  const [token,setToken] = useOperatorToken();
+  const [saving,setSaving] = useState(false);
+  const [photo,setPhoto] = useState(null);
   const navigate = useNavigate();
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
     setError('');
     const input = Object.fromEntries(Object.entries(form).map(([key, value]) => [key, value.trim()]));
@@ -20,9 +25,14 @@ export default function SampleManagement() {
       return setError('Initial weight must be greater than 0 g and no more than 10,000 g.');
     }
     try {
-      const sample = registerSample(input);
+      setSaving(true);
+      const sample = await registerSample(input,token);
+      if (photo && !demoEnabled) {
+        try { await uploadSamplePhoto(sample.id, photo, 'Baseline', token); }
+        catch (failure) { window.alert(`Sample registered, but the first photo was not saved: ${failure.message} Add it on the sample page.`); }
+      }
       navigate(`/module-02/samples/${encodeURIComponent(sample.id)}`);
-    } catch (failure) { setError(failure.message); }
+    } catch (failure) { setError(failure.message); } finally { setSaving(false); }
   }
   return <>
     <DataState />
@@ -31,14 +41,14 @@ export default function SampleManagement() {
     {samples.length > 0 && <div className="sample-cards">{samples.map(sample => <Link key={sample.id} className="panel sample-card" to={`/module-02/samples/${encodeURIComponent(sample.id)}`}>
       <span className="eyebrow">{sample.batchId}</span><h3>{sample.id} ↗</h3>
       <p>{sample.grade} · {sample.storage}</p><span>Storage start: {sample.storageStartDate}</span>
-      <span>{sample.records.length} measurements · {sample.images.length} image references</span>
+      <span>{sample.historyTotal ?? (sample.detailsLoaded || demoEnabled ? sample.records.length : "Not loaded")} measurements · {sample.imageTotal ?? (sample.detailsLoaded || demoEnabled ? sample.images.length : "Not loaded")} image references</span>
     </Link>)}</div>}
-    <Panel title="Register a demonstration sample" eyebrow="FRONTEND WORKFLOW" className="registration-panel">
-      <p>Demo registrations stay in memory while you remain in Module 02. Refreshing or leaving this module resets them. No database record is created.</p>
-      {!demoEnabled && <p className="form-hint">Enable demo data above to try registration.</p>}
+    <Panel title={demoEnabled ? "Register a demonstration sample" : "Register a stored cinnamon sample"} eyebrow="SAMPLE REGISTRATION" className="registration-panel">
+      <p>{demoEnabled ? "Demo registrations stay in memory and create no database record." : "Create a persistent sample record."}</p>
+      {!demoEnabled && !TOKEN_OPTIONAL && <label>Operator token<input type="password" autoComplete="off" value={token} onChange={event=>setToken(event.target.value)} /></label>}
       <form onSubmit={submit} className="sample-form">
-        <fieldset disabled={!demoEnabled}>
-          <legend className="sr-only">Demonstration sample registration</legend>
+        <fieldset disabled={saving}>
+          <legend className="sr-only">Sample registration</legend>
           <div className="form-grid">
             {[
               ['id', 'Sample ID', 'text', 'CIN-DEMO-003'], ['batchId', 'Batch ID', 'text', 'BATCH-DEMO-C'],
@@ -51,7 +61,10 @@ export default function SampleManagement() {
                 onChange={event => setForm(previous => ({ ...previous, [name]: event.target.value }))} />
             </label>)}
           </div>
-          <button type="submit" className="button">Create local demo sample →</button>
+          {!demoEnabled && <label htmlFor="register-photo">First photo of the sample (optional)
+            <input id="register-photo" type="file" accept="image/jpeg,image/png" onChange={event => setPhoto(event.target.files?.[0] || null)} />
+          </label>}
+          <button type="submit" className="button">{saving ? "Saving..." : demoEnabled ? "Create local demo sample" : "Register sample"}</button>
         </fieldset>
         {error && <p className="form-error" role="alert">{error}</p>}
       </form>

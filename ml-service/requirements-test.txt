@@ -1,0 +1,2 @@
+# Test client only; install into ml-service/.venv, not Model 01.
+httpx==0.28.1
