@@ -8,6 +8,7 @@ import {Sample} from '../module02/models.js';
 import {ImageConditionAnalysis} from './model.js';
 import {imageService,ImageServiceError} from './service.js';
 import {createPhotoPreviewRouter} from '../module02/pp1PhotoPreview.js';
+import {localUploadAllowed} from '../module02/auth.js';
 const fail=(status,code,message)=>{throw Object.assign(new Error(message),{status,code});};
 const id=value=>{if(typeof value!=='string'||!/^[A-Za-z0-9][A-Za-z0-9_-]{1,63}$/.test(value))fail(400,'VALIDATION_ERROR','Use a sample/device ID with 2-64 letters, digits, underscores or hyphens.');return value;};
 const equal=(a,b)=>timingSafeEqual(createHash('sha256').update(a).digest(),createHash('sha256').update(b).digest());
@@ -32,7 +33,7 @@ const output=row=>{const value=row.toObject();delete value.filename;return {...v
 export function createImageRouter({Model=ImageConditionAnalysis,databaseReady=()=>mongoose.connection.readyState===1,service=imageService,SampleModel=Sample}={}) {
  const router=Router();
  router.use(createPhotoPreviewRouter({service}));
- const operatorOnly=(req,res,next)=>authorize(req,res,()=>{if(req.deviceId)fail(403,'FORBIDDEN','Use an operator token for camera controls.');next();});
+ const operatorOnly=(req,res,next)=>localUploadAllowed(req)?next():authorize(req,res,()=>{if(req.deviceId)fail(403,'FORBIDDEN','Use an operator token for camera controls.');next();});
  router.get('/camera/status',operatorOnly,async(_req,res)=>res.json(await service('/camera/status')));
  router.use((_req,_res,next)=>{if(!databaseReady())fail(503,'DATABASE_UNAVAILABLE','MongoDB is required to store and retrieve sample images.');next();});
  async function analyze(row,bytes) {
@@ -56,7 +57,7 @@ export function createImageRouter({Model=ImageConditionAnalysis,databaseReady=()
   catch(error){await unlink(resolve(directory(),filename)).catch(()=>{});throw error;}
   await analyze(row,bytes);return row;
  }
- router.post('/images',authorize,express.raw({type:['image/jpeg','image/png'],limit:'5mb'}),async(req,res)=>{
+ router.post('/images',(req,res,next)=>localUploadAllowed(req)?next():authorize(req,res,next),express.raw({type:['image/jpeg','image/png'],limit:'5mb'}),async(req,res)=>{
   const sampleId=id(req.query.sampleId),bytes=req.body;
   if(!Buffer.isBuffer(bytes)||!bytes.length)fail(415,'INVALID_IMAGE','Supply binary JPEG/PNG bytes.');
   await registeredSample(sampleId);
@@ -81,7 +82,7 @@ export function createImageRouter({Model=ImageConditionAnalysis,databaseReady=()
  });
  async function stored(imageId){if(!/^[a-f0-9]{24}$/i.test(imageId))fail(400,'VALIDATION_ERROR','Invalid image ID.');const row=await Model.findById(imageId);if(!row)fail(404,'IMAGE_NOT_FOUND','Image not found.');if(!/^[a-f0-9-]{36}\.(jpg|png)$/.test(row.filename))fail(500,'STORAGE_ERROR','Invalid stored file.');return row;}
  async function bytes(row){try{return await readFile(resolve(directory(),row.filename));}catch(error){if(error.code==='ENOENT')fail(404,'IMAGE_FILE_NOT_FOUND','Stored image file is missing.');throw error;}}
- router.post('/:imageId/analyze',authorize,async(req,res)=>{if(req.deviceId)fail(403,'FORBIDDEN','Use an operator token to request reanalysis.');const row=await stored(req.params.imageId);await analyze(row,await bytes(row));res.json(output(row));});
+ router.post('/:imageId/analyze',(req,res,next)=>localUploadAllowed(req)?next():authorize(req,res,next),async(req,res)=>{if(req.deviceId)fail(403,'FORBIDDEN','Use an operator token to request reanalysis.');const row=await stored(req.params.imageId);await analyze(row,await bytes(row));res.json(output(row));});
  router.get('/:imageId/file',async(req,res)=>{const row=await stored(req.params.imageId);res.set('Cache-Control','private, max-age=300').type(row.contentType).send(await bytes(row));});
  router.use((error,_req,res,_next)=>{
   let status=error.status||500,code=error.code||'INTERNAL_SERVER_ERROR',message=error.message;

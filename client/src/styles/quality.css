@@ -389,3 +389,7 @@
 .module02-color-preview { display: flex; align-items: center; gap: 1rem; }
 .risk-input-source { display: block; font-weight: 400; margin-top: .5rem; overflow-wrap: anywhere; }
 @media (max-width: 700px) { .module02-sensor-charts { grid-template-columns: minmax(0, 1fr); } }
+
+/* Make disabled action buttons visibly inactive. */
+.quality-page .button:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

@@ -19,7 +19,7 @@ The obsolete local presentation API on port 5002 has been stopped.
 | module02_synthetic_risk_predictions | 1 |
 | module02_image_condition_analyses | 0 |
 
-Samples CIN-PP1-001, CIN-PP1-002 and CIN-PP1-003 and all 18 observations retain
+Samples CIN-001, CIN-002 and CIN-003 and all 18 observations retain
 DEMO_DATA provenance. They are illustrative values, not real sensor measurements.
 The existing Low result retains SYNTHETIC_DEMO, its original timestamp and reading
 reference, scientific-validation warning and null/unverified prediction horizon.
@@ -50,7 +50,7 @@ Open http://localhost:5173/module-02. Start both Python services using the exact
 unchanged commands in `ml-module02/MODEL_FILES_GUIDE.md` if not already running.
 No local MongoDB or port 5002 presentation API is required.
 
-Keep the in-memory Demo switch off. Select CIN-PP1-001 to see stored observations.
+Keep the in-memory Demo switch off. Select CIN-001 to see stored observations.
 Enter the existing operator token in the dashboard password field and load risk
 history. The saved Low result is an actual model inference on illustrative inputs.
 A separate real photo can be classified with the authenticated preview action;
@@ -58,8 +58,8 @@ it is not attached to illustrative samples or saved to image history.
 
 New simulations of historical stored records are permitted only when BOTH sample
 and reading have DEMO_DATA provenance. Real/legacy readings retain the normal
-freshness limit. Future, incomplete and invalid readings are rejected. The third
-sample intentionally lacks temperature/humidity and cannot produce a risk result.
+freshness limit. Future, incomplete and invalid readings are rejected. All three
+samples have illustrative temperature/humidity values and can produce a risk result.
 
 ## Verification
 

@@ -17,3 +17,14 @@ export function deviceAuth(req, _res, next) {
   if (typeof secret !== 'string' || secret.length < 32 || !matches(req.get('x-device-key') || '',secret)) fail(401,'UNAUTHORIZED','Invalid device credentials.');
   req.deviceId = deviceId; next();
 }
+// Manual photo uploads from this computer may skip the operator token when
+// MODULE02_LOCAL_UPLOADS_WITHOUT_TOKEN=true. Requests from other devices still need it.
+export function localUploadAllowed(req) {
+  if (process.env.MODULE02_LOCAL_UPLOADS_WITHOUT_TOKEN !== 'true') return false;
+  if (req.get('authorization') || req.get('x-device-id') || req.get('x-forwarded-for')) return false;
+  return ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket?.remoteAddress);
+}
+export function operatorOrLocalUpload(req, res, next) {
+  if (localUploadAllowed(req)) return next();
+  return operatorAuth(req, res, next);
+}

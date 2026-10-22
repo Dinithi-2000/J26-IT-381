@@ -149,7 +149,7 @@ test('stored illustrative history permits a presentation request without represe
 });
 
 test('dashboard loads stored records with intact provenance and backend order', async () => {
-  const rows = [{sampleId:'CIN-PP1-003',dataOrigin:'DEMO_DATA'}, {sampleId:'CIN-PP1-001',dataOrigin:'DEMO_DATA'},
+  const rows = [{sampleId:'CIN-003',dataOrigin:'DEMO_DATA'}, {sampleId:'CIN-001',dataOrigin:'DEMO_DATA'},
     {sampleId:'CIN003',dataOrigin:'REAL_SENSOR'}, {sampleId:'CIN001'}, {sampleId:'CIN-DEMO-001'}];
   const service = createQualityService({fetcher:async()=>Response.json({data:rows,pagination:{pages:1}})});
   const stored = await service.getSamples();

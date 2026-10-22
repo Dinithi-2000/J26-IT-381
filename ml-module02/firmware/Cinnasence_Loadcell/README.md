@@ -35,7 +35,7 @@ The original external sketch is untouched. Pins and normal display are retained:
 3. Set `SAMPLE_ID` to an **actual registered, non-archived cinnamon record**.
    Use the existing Cinnamon records page to register the actual group first,
    with its true storage start date and measured initial combined weight. Do
-   not use `CIN-PP1-*` or other illustrative records. Nothing registers a record
+   not use `CIN-*` or other illustrative records. Nothing registers a record
    automatically, and this template deliberately supplies no invented ID.
 4. Keep `BACKEND_URL` as shown while your laptop has IP 172.20.10.3. It is the
    laptop address, not the ESP32 address (172.20.10.7). Update it if DHCP changes.

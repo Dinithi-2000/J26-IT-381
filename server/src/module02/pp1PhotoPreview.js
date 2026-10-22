@@ -1,5 +1,5 @@
 import express, {Router} from 'express';
-import {operatorAuth} from './auth.js';
+import {operatorOrLocalUpload} from './auth.js';
 import {verifyPp1Connection} from './pp1Dataset.js';
 import {imageService, ImageServiceError, validateResult} from '../module02-image/service.js';
 
@@ -10,7 +10,7 @@ export function createPhotoPreviewRouter({service = imageService, verifyTarget =
     verifyTarget();
     res.json({...await service('/health'), previewAvailable: true});
   });
-  router.post('/preview', operatorAuth, express.raw({type: ['image/jpeg', 'image/png'], limit: '5mb'}), async (req, res) => {
+  router.post('/preview', operatorOrLocalUpload, express.raw({type: ['image/jpeg', 'image/png'], limit: '5mb'}), async (req, res) => {
     verifyTarget();
     const bytes = req.body;
     const png = req.is('image/png') && Buffer.isBuffer(bytes) && bytes.length >= 8 && bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]));

@@ -174,7 +174,7 @@ Start Python services with the unchanged commands above when needed.
 
 ### Demonstrate both outputs
 
-1. Select `CIN-PP1-001`. Show the “Illustrative Records” note, saved measurements,
+1. Select `CIN-001`. Show the “Illustrative Records” note, saved measurements,
    charts and history; click Refresh stored records.
 2. In Model 01, use **Classify a separate uploaded photograph**. Enter your
    existing operator token, choose an actual cinnamon JPEG/PNG, then click
@@ -184,8 +184,8 @@ Start Python services with the unchanged commands above when needed.
 3. In Model 02, enter the operator token and choose Load risk history or Request
    risk prediction. Show the actual Python response and its saved Atlas history,
    retaining the synthetic-training and unverified-horizon disclosures.
-4. Select `CIN-PP1-003` to show the missing temperature/humidity message and
-   disabled risk prediction. No missing measurements are invented.
+4. Select `CIN-003` to request a third risk prediction. Its temperature/humidity
+   values are illustrative, like those of CIN-001 and CIN-002.
 
 For the longer presentation walkthrough and database safety details, see
 `server/MODULE02_PP1_PRESENTATION.md`. Historical illustrative readings are

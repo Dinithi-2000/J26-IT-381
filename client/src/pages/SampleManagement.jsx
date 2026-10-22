@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuality } from '../components/QualityProvider';
 import { DataState, Panel } from '../components/QualityUI';
+import { useOperatorToken } from '../services/operatorToken';
 
 const initialForm = { id: '', batchId: '', grade: '', storage: '', storageStartDate: '', initialWeight: '' };
 export default function SampleManagement() {
   const { demoEnabled, samples, registerSample } = useQuality();
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState('');
-  const [token,setToken] = useState('');
+  const [token,setToken] = useOperatorToken();
   const [saving,setSaving] = useState(false);
   const navigate = useNavigate();
   async function submit(event) {

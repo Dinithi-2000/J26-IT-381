@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useQuality } from '../components/QualityProvider';
-import { DataState, ImageComparison, Panel } from '../components/QualityUI';
+import { DataState, EXAMPLE_IMAGES, ImageComparison, Panel } from '../components/QualityUI';
 import {Module02MeasurementHistory as MeasurementHistory} from '../components/Module02SensorPanel';
 import { formatTimestamp } from '../data/demoQuality';
 
@@ -30,7 +30,7 @@ export default function SampleDetails() {
       </Panel>
       <MeasurementHistory sample={sample} />
       <Panel title="Image history" eyebrow="VISUAL REFERENCES" className="hardware-panel">
-        <ImageComparison sample={sample} />
+        <ImageComparison sample={sample} examples={EXAMPLE_IMAGES} />
         <p>{demoEnabled ? 'Demo references are illustrations, not sample photographs.' : 'Stored image references appear when available; capture requires authenticated device uploads.'}</p>
         {sample.images.length > 0 && <ul className="image-history">{sample.images.map(image => <li key={image.id}>
           <strong>{image.role} reference</strong><span>{image.id}</span><span>{formatTimestamp(image.timestamp)}</span>

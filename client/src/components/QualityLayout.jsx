@@ -63,7 +63,7 @@ function QualityShell() {
           <Icon name={icon} size={20} /><span className="sidebar-copy">{label}</span>{index === 1 && <span className="sidebar-count sidebar-copy">{samples.length}</span>}
         </NavLink>)}
       </nav>
-      <Module02HardwareStatus hardware={hardware} sampleId={selected?.id} />
+      {pathname !== "/module-02/images" && <Module02HardwareStatus hardware={hardware} sampleId={selected?.id} />}
       <div className="sidebar-research-note sidebar-copy"><span className="sidebar-note-icon"><Icon name="shield" size={24} /></span><strong>Evidence before inference.</strong><p>Quality indicators inform research. Validated models must come before predictions.</p><Link to="/module-02/predictions">Model availability <Icon name="external" size={14} /></Link></div>
       <Link className="sidebar-back" to="/"><Icon name="arrow" size={17} /><span className="sidebar-copy">Back to CinnaSense</span></Link>
     </aside>

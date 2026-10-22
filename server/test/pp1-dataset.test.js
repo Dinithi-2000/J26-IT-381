@@ -51,7 +51,7 @@ test('local seed is idempotent; existing API/client retrieve samples and histori
   const service=createQualityService({baseUrl:`http://127.0.0.1:${server.address().port}/api`});
   try {
     const samples=await service.getSamples();assert.equal(samples.length,3);assert(samples.every(row=>row.dataOrigin==='DEMO_DATA'));
-    const sample=samples.find(row=>row.id==='CIN-PP1-002'), detail=await service.getSampleData(sample);
+    const sample=samples.find(row=>row.id==='CIN-002'), detail=await service.getSampleData(sample);
     assert.equal(detail.records.length,6);assert.equal(detail.records.at(-1).weight,197.5);
     assert.equal(detail.records.at(-1).environment.temperature.source,'illustrative');
     const latest=await service.getLatestReading(sample.id);

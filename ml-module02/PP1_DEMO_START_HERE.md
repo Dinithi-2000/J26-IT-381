@@ -47,13 +47,13 @@ checks it without printing tokens. Never enter Python service tokens into React.
 ## 2. Show the stored data and charts
 
 1. Open **http://localhost:5173/module-02**.
-2. Select **CIN-PP1-001** in the Cinnamon ID selector. Wait for readings to load.
+2. Select **CIN-001** in the Cinnamon ID selector. Wait for readings to load.
 3. Show Weight history, RGB change history and the measurement history table.
-4. Switch to CIN-PP1-002 to demonstrate selection, then return to CIN-PP1-001.
+4. Switch to CIN-002 to demonstrate selection, then return to CIN-001.
 
 Atlas currently contains **3 illustrative records and 18 observations**, six per
 record. Their `DEMO_DATA` label is retained: they are not measurements of real
-cinnamon. The third record intentionally lacks temperature and humidity.
+cinnamon. All three records have illustrative temperature and humidity values.
 
 The intended monitored group contains **four quills, approximately four inches
 each**. Weight is the combined total. Illustrative weights do not establish the
@@ -80,12 +80,12 @@ production records solely for this walkthrough.
 
 ## 4. Show Model 02 and refresh
 
-1. Open **AI predictions** (`/module-02/predictions`). Select **CIN-PP1-001**.
+1. Open **AI predictions** (`/module-02/predictions`). Select **CIN-001**.
 2. Enter your operator token; click **Load risk history** to show the saved Low
    result, its exact input snapshot, original timestamp and synthetic disclosure.
 3. **Request risk prediction** for that same reading returns the same saved
    record. This duplicate-safe action does not rerun inference or add a document.
-4. Refresh the browser, select CIN-PP1-001 again, re-enter the operator token and
+4. Refresh the browser, select CIN-001 again, and
    load history. The same saved result remains available from Atlas.
 
 Fresh Model 02 inference on that stored input snapshot was separately verified
@@ -125,9 +125,9 @@ node server/tools/module02-verify-atlas.mjs
   above. Do not reinstall dependencies, change weights or retrain. Stored
   observations and saved risk history remain useful during an inference outage.
 - **401:** re-enter the operator token from your private backend configuration.
-  Tokens are deliberately forgotten on refresh and are never saved in React.
-- **Risk inputs unavailable:** CIN-PP1-003 has missing environmental fields;
-  select CIN-PP1-001. Genuine readings must meet the backend freshness rules.
+  The token is remembered until the browser tab is closed (sessionStorage only).
+- **Risk inputs unavailable:** the selected reading is missing temperature or
+  humidity; select another sample. Genuine readings must meet the backend freshness rules.
 - **"This photo does not look like a cinnamon quill":** the cinnamon check rejected
   the photo (similarity to the 250 known cinnamon photos below 0.55). Use a clear
   cinnamon photo. The check needs `models/cinnamon_reference.npz`; if it is missing

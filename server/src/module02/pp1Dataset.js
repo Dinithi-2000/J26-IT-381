@@ -18,19 +18,19 @@ export function verifyPp1Connection(connection = mongoose.connection) {
 export function pp1Records() {
   const samples = [], readings = [];
   for (let index = 0; index < 3; index++) {
-    const sampleId = `CIN-PP1-${String(index + 1).padStart(3, '0')}`;
+    const sampleId = `CIN-${String(index + 1).padStart(3, '0')}`;
     const initialWeightGrams = [250, 200, 180][index];
-    samples.push({sampleId, batchId: 'PP1-ILLUSTRATIVE-2026', grade: ['Alba illustration', 'C5 illustration', 'Quill illustration'][index],
-      storage: ['Sealed container illustration', 'Paper-lined container illustration', 'Controlled storage illustration'][index],
+    samples.push({sampleId, batchId: 'BATCH-2026-10', grade: ['Alba', 'C5', 'Quill'][index],
+      storage: ['Sealed container', 'Paper-lined container', 'Controlled storage'][index],
       storageStartDate: new Date('2026-10-16T05:00:00Z'), initialWeightGrams, dataOrigin: 'DEMO_DATA'});
-    for (let day = 0; day <= 5; day++) readings.push({sampleId, deviceId: 'PP1-ILLUSTRATIVE', measurementId: `${sampleId}-DAY-${day}`,
+    for (let day = 0; day <= 5; day++) readings.push({sampleId, deviceId: 'REFERENCE-DATASET', measurementId: `${sampleId}-DAY-${day}`,
       recordedAt: new Date(Date.UTC(2026, 9, 16 + day, 5)), weightGrams: initialWeightGrams - day * [0.8, 0.5, 0.3][index],
       red: 170 - index * 8 - day * 2, green: 118 - index * 5 - day, blue: 76 - index * 4 - day,
-      temperatureC: index === 2 ? null : 27 + index + day * .2,
-      relativeHumidityPercent: index === 2 ? null : 60 + index * 4 + day,
+      temperatureC: Math.round((27 + index + day * .2) * 10) / 10,
+      relativeHumidityPercent: 60 + index * 4 + day,
       gasResistanceOhms: null, dataOrigin: 'DEMO_DATA',
       sensorStatus: {weight: 'offline', color: 'offline'},
-      environment: {temperature: {source: index === 2 ? 'unavailable' : 'illustrative'}, humidity: {source: index === 2 ? 'unavailable' : 'illustrative'}}});
+      environment: {temperature: {source: 'illustrative'}, humidity: {source: 'illustrative'}}});
   }
   return {samples, readings};
 }

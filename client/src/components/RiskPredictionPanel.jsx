@@ -4,6 +4,7 @@ import {Panel} from './QualityUI';
 import {qualityService} from '../services/qualityService';
 import {createRiskWorkspace, readingCondition, RISK_DISCLAIMER, RISK_LABELS} from '../services/riskPredictionState';
 import {formatTimestamp} from '../data/demoQuality';
+import {useOperatorToken} from '../services/operatorToken';
 
 const stamp = value => value && Number.isFinite(Date.parse(value)) ? formatTimestamp(value) : 'Not available';
 const value = (number, unit = '') => typeof number === 'number' && Number.isFinite(number) ? `${number}${unit}` : 'Not available';
@@ -22,8 +23,8 @@ export function RiskPredictionView({state, sample, token = '', onToken = noop, o
     ['Relative humidity', value(reading?.relativeHumidityPercent, ' %')], ['Weight', value(reading?.weightGrams, ' g')],
     ['RGB readings', reading ? [reading.red, reading.green, reading.blue].map(channel => value(channel)).join(' / ') : 'Not available'],
     ['Storage duration', typeof duration === 'number' && duration >= 0 ? `${duration} completed days` : 'Not available']];
-  return <Panel title="Storage Deterioration Risk" eyebrow="MODEL 02 / RANDOMFOREST" badge="SYNTHETIC DEMO" className="synthetic-risk-panel">
-    <div className="risk-demo-disclaimer" role="note"><strong>SYNTHETIC_DEMO ? synthetic research prototype</strong><p>{RISK_DISCLAIMER}</p></div>
+  return <Panel title="Storage Deterioration Risk" eyebrow="MODEL 02 / RANDOMFOREST" className="synthetic-risk-panel">
+    <p className="panel-caption" role="note">{RISK_DISCLAIMER}</p>
     <p className="panel-caption">Model 01 image screening is available alongside this panel on the overview and in Image analysis. This section uses stored sensor readings through the authenticated Node backend.</p>
     {state.demo ? <p className="research-note">Demo mode is enabled. Turn it off to select a registered sample and an actual stored sensor reading. No prediction is generated from demonstration samples.</p>
       : !sample ? <p role="status">No registered sample selected. Register or select a sample to load stored readings. No risk prediction is available.</p> : <>
@@ -41,11 +42,13 @@ export function RiskPredictionView({state, sample, token = '', onToken = noop, o
       </section>
       <form className="risk-auth-form" onSubmit={event => {event.preventDefault(); onHistory(1);}}>
         <label htmlFor="risk-operator-token">Operator token<input id="risk-operator-token" type="password" autoComplete="off" value={token} disabled={busy} onChange={event => onToken(event.target.value)} /></label>
-        <p className="panel-caption">Kept only in this mounted workspace’s memory. Enter your operator token, never the Python service token.</p>
+        <p className="panel-caption">Remembered until you close this browser tab. Enter your operator token, never the Python service token.</p>
         <div className="classifier-actions">
           <button type="button" className="button" onClick={onPredict} disabled={!enabled || !state.hasToken || !reading || condition.invalid || state.readingStatus !== 'ready' || busy}>{busy ? 'Requesting stored risk result…' : 'Request risk prediction'}</button>
           <button type="submit" className="button secondary" disabled={!state.hasToken || state.historyStatus === 'loading' || busy}>Load risk history</button>
         </div>
+        {reading && condition.invalid && <p className="form-error" role="note">Risk prediction is unavailable for {sample.id}: {condition.label} Select a sample that has temperature and humidity readings.</p>}
+        {reading && !condition.invalid && !state.hasToken && <p className="form-hint">Enter your operator token to enable Request risk prediction.</p>}
         <p className="panel-caption">Nothing is predicted on page load. Retrying the same sample and reading retrieves the same saved result. Stale readings may only retrieve an existing result.</p>
       </form>
     </>}
@@ -56,7 +59,7 @@ export function RiskPredictionView({state, sample, token = '', onToken = noop, o
       {busy && <p role="status">Waiting for the backend to validate the reading and return a persisted result…</p>}
       {result && !state.demo ? <>
         <strong className={`risk-category risk-category-${result.riskCategory}`}>{RISK_LABELS[result.predictedRisk]}</strong>
-        <span className="small-badge badge-demo">SYNTHETIC_DEMO</span>
+
         <dl className="detail-list"><div><dt>Sample ID</dt><dd>{result.sampleId}</dd></div>
           <div><dt>Prediction timestamp</dt><dd>{stamp(result.predictedAt)}</dd></div>
           <div><dt>Model version</dt><dd className="risk-reference">{result.modelVersion}</dd></div>
@@ -67,17 +70,17 @@ export function RiskPredictionView({state, sample, token = '', onToken = noop, o
         <details><summary>Inputs saved with this result</summary><dl className="risk-input-grid">{Object.entries(result.inputSnapshot).map(([name, number]) => <div key={name}><dt>{name}</dt><dd>{value(number)}<small className="risk-input-source">Source: {result.inputSources?.[name] || 'Not recorded in this historical result'}</small></dd></div>)}</dl></details>
       </> : <p>No Model 02 risk result loaded. Results appear only after an authenticated backend response; no risk category is inferred in the browser.</p>}
     </section>
-    <section className="risk-history" aria-label="Synthetic risk prediction history" aria-busy={state.historyStatus === 'loading'}>
+    <section className="risk-history" aria-label="Risk prediction history" aria-busy={state.historyStatus === 'loading'}>
       <h3>Historical risk predictions</h3>
       {state.historyError && <p role="alert" className="form-error">{state.historyError}</p>}
-      {state.historyStatus === 'loading' ? <p role="status">Loading synthetic risk prediction history…</p>
+      {state.historyStatus === 'loading' ? <p role="status">Loading risk prediction history…</p>
         : state.historyStatus === 'locked' ? <p>Enter your operator token and load this sample’s risk history.</p>
-          : !state.history.length ? <p>{state.historyStatus === 'ready' ? 'No synthetic risk predictions have been stored for this sample.' : 'No risk history loaded.'}</p> : null}
+          : !state.history.length ? <p>{state.historyStatus === 'ready' ? 'No risk predictions have been stored for this sample.' : 'No risk history loaded.'}</p> : null}
       {!!state.history.length && !state.demo && <>
-        <div className="table-wrap" tabIndex="0" role="region" aria-label={`Synthetic risk history for ${sample?.id}`}><table>
-          <caption>Historical SYNTHETIC_DEMO results — unvalidated; timestamps shown in Sri Lanka time</caption>
-          <thead><tr>{['Predicted at', 'Risk category', 'Model version', 'Sensor reading ID', 'Training provenance'].map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
-          <tbody>{state.history.map(row => <tr key={row._id}><td>{stamp(row.predictedAt)}</td><td><span className={`risk-category risk-category-${row.riskCategory}`}>{RISK_LABELS[row.predictedRisk]}</span></td><td className="risk-reference">{row.modelVersion}</td><td className="risk-reference">{row.sensorReadingId}</td><td>SYNTHETIC_DEMO<br />Not validated</td></tr>)}</tbody>
+        <div className="table-wrap" tabIndex="0" role="region" aria-label={`Risk history for ${sample?.id}`}><table>
+          <caption>Saved risk predictions · timestamps shown in Sri Lanka time</caption>
+          <thead><tr>{['Predicted at', 'Risk category', 'Model version', 'Sensor reading ID', 'Validation'].map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
+          <tbody>{state.history.map(row => <tr key={row._id}><td>{stamp(row.predictedAt)}</td><td><span className={`risk-category risk-category-${row.riskCategory}`}>{RISK_LABELS[row.predictedRisk]}</span></td><td className="risk-reference">{row.modelVersion}</td><td className="risk-reference">{row.sensorReadingId}</td><td>Not validated</td></tr>)}</tbody>
         </table></div>
         <div className="classifier-actions"><button className="button secondary" type="button" disabled={state.historyStatus === 'loading' || busy || state.pagination.page <= 1} onClick={() => onHistory(state.pagination.page - 1)}>Previous risk page</button>
           <span>Page {state.pagination.page} of {state.pagination.pages} · {state.pagination.total} records</span>
@@ -91,8 +94,10 @@ export default function RiskPredictionPanel({service = qualityService}) {
   const {selected, demoEnabled} = useQuality();
   const workspace = useMemo(() => createRiskWorkspace(service), [service]);
   const state = useSyncExternalStore(workspace.subscribe, workspace.getSnapshot, workspace.getSnapshot);
-  const [token, setToken] = useState('');
+  const [token, setToken] = useOperatorToken();
   const [now, setNow] = useState(Date.now());
+  // Runs before selectSample, so a remembered token loads history straight away.
+  useEffect(() => {workspace.setToken(token);}, [workspace, token]);
   useEffect(() => {
     workspace.selectSample(selected, demoEnabled);
     return () => workspace.dispose();
@@ -102,6 +107,6 @@ export default function RiskPredictionPanel({service = qualityService}) {
   const visible = state.sampleId === selected?.id && state.demo === demoEnabled ? state
     : {...state, sampleId: selected?.id || null, demo: demoEnabled, reading: null, result: null, history: [], error: '', notice: '', readingError: '', historyError: '', readingStatus: 'loading'};
   return <RiskPredictionView state={visible} sample={selected} token={token} now={now}
-    onToken={next => {setToken(next); workspace.setToken(next);}}
+    onToken={setToken}
     onPredict={workspace.predict} onReading={workspace.loadReading} onHistory={workspace.loadHistory} />;
 }

@@ -15,10 +15,10 @@ try {
   const routes=[];
   for(const port of [5000,5173]) {
     const base=`http://localhost:${port}/api`;
-    const samples=await get(base+'/samples?limit=100',{headers});assert(samples.data.some(s=>s.sampleId==='CIN-PP1-001'));
-    const readings=await get(base+'/module-02/samples/CIN-PP1-001/readings?limit=100',{headers});assert.equal(readings.pagination.total,6);
-    const history=await get(base+'/module-02/samples/CIN-PP1-001/risk-predictions',{headers});assert(history.data.some(r=>r._id===String(saved._id)));
-    const images=await get(base+'/module-02/image-classification/history?sampleId=CIN-PP1-001',{headers});assert.equal(images.pagination.total,0);
+    const samples=await get(base+'/samples?limit=100',{headers});assert(samples.data.some(s=>s.sampleId==='CIN-001'));
+    const readings=await get(base+'/module-02/samples/CIN-001/readings?limit=100',{headers});assert.equal(readings.pagination.total,6);
+    const history=await get(base+'/module-02/samples/CIN-001/risk-predictions',{headers});assert(history.data.some(r=>r._id===String(saved._id)));
+    const images=await get(base+'/module-02/image-classification/history?sampleId=CIN-001',{headers});assert.equal(images.pagination.total,0);
     routes.push({port,samples:samples.pagination.total,readings:readings.pagination.total,riskHistory:history.pagination.total});
   }
   const retry=await get('http://127.0.0.1:5000/api/module-02/risk-predictions',{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify({sampleId:saved.sampleId,readingId:String(saved.sensorReadingId)})});

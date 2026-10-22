@@ -1,4 +1,4 @@
-export const RISK_DISCLAIMER = 'Storage Deterioration Risk (Synthetic Demo). Predictions are based on synthetic training data and are not validated for real-world cinnamon safety or quality assessment.';
+export const RISK_DISCLAIMER = 'Research prototype: Model 02 was trained on simulated storage data and has not been validated for real-world cinnamon quality or safety decisions.';
 export const RISK_LABELS = Object.freeze({Low: 'Low Risk', Medium: 'Medium Risk', High: 'High Risk'});
 const mapped = {Low: 'low', Medium: 'moderate', High: 'high'};
 const emptyPage = () => ({page: 1, pages: 0, total: 0, limit: 12});

@@ -50,19 +50,31 @@ export default function Module02SensorPanel() {
   return <Module02SensorView sample={selected} demo={demoEnabled} hardware={hardware} />;
 }
 
+// Columns are shown only when at least one stored record has a value for them.
+const historyColumns = [
+  ['Timestamp', row => stamp(row.timestamp), () => true],
+  ['Storage day', row => value(row.day), () => true],
+  ['Weight (g)', row => value(row.weight), () => true],
+  ['Weight change (%)', (row, sample) => value(Number.isFinite(row.weight) && sample.initialWeight > 0 ? (row.weight - sample.initialWeight) / sample.initialWeight * 100 : null), () => true],
+  ['Temperature (°C)', row => value(row.temperature), row => Number.isFinite(row.temperature)],
+  ['Humidity (% RH)', row => value(row.humidity), row => Number.isFinite(row.humidity)],
+  ['Gas resistance (ohms)', row => value(row.gasResistanceOhms), row => Number.isFinite(row.gasResistanceOhms)],
+  ['Display RGB', row => row.rgb?.map(channel => value(channel)).join(' / ') || 'No reading', row => row.rgb?.length > 0],
+  ['Raw RGBC counts', row => ['red', 'green', 'blue', 'clear'].map(key => value(row.rgbRaw?.[key])).join(' / '), row => Boolean(row.rgbRaw)],
+];
+
 export function Module02MeasurementHistory({sample}) {
   const {demoEnabled} = useQuality();
-  return <Panel title="The details behind the trends." eyebrow="SAMPLE MEASUREMENT HISTORY" badge={demoEnabled ? 'DEMO DATA' : 'STORED MEASUREMENTS'}>
+  const columns = historyColumns.filter(([, , present]) => sample.records.some(present));
+  const illustrative = demoEnabled || sample.dataOrigin === 'DEMO_DATA' || sample.records.some(row => row.dataOrigin === 'DEMO_DATA');
+  return <Panel title="The details behind the trends." eyebrow="SAMPLE MEASUREMENT HISTORY" badge="STORED MEASUREMENTS">
     {sample.historyTotal > 200 && <p>Showing the latest 200 of {sample.historyTotal} measurements.</p>}
     {!sample.records.length ? <p>No measurements recorded for this sample. Registration does not create sensor readings.</p> :
       <div className="table-wrap" tabIndex="0" role="region" aria-label={`Measurement history for ${sample.id}`}><table>
-        <caption>{demoEnabled ? 'DEMO DATA: ' : ''}{sample.id} - timestamps in Sri Lanka time; missing values are not zero</caption>
-        <thead><tr>{['Timestamp', 'Storage day', 'Weight (g)', 'Weight change (%)', 'Temperature (°C)', 'Humidity (% RH)', 'Gas resistance (ohms)', 'Display RGB', 'Raw RGBC counts', 'Data source'].map(label => <th scope="col" key={label}>{label}</th>)}</tr></thead>
+        <caption>{sample.id} - timestamps in Sri Lanka time{illustrative ? '; illustrative records' : ''}</caption>
+        <thead><tr>{columns.map(([label]) => <th scope="col" key={label}>{label}</th>)}</tr></thead>
         <tbody>{sample.records.map(row => <tr key={row.id || row.timestamp}>
-          <td>{stamp(row.timestamp)}</td><td>{value(row.day)}</td><td>{value(row.weight)}</td><td>{value(Number.isFinite(row.weight) && sample.initialWeight > 0 ? (row.weight - sample.initialWeight) / sample.initialWeight * 100 : null)}</td><td>{value(row.temperature)}</td><td>{value(row.humidity)}</td><td>{value(row.gasResistanceOhms)}</td>
-          <td>{row.rgb?.map(channel => value(channel)).join(' / ') || 'No Reading'}</td>
-          <td>{row.rgbRaw ? ['red', 'green', 'blue', 'clear'].map(key => value(row.rgbRaw[key])).join(' / ') : 'Not recorded'}</td>
-          <td>{demoEnabled ? 'DEMO' : row.dataOrigin || 'Legacy - origin not recorded'}<br />Temperature: {demoEnabled ? 'DEMO' : row.environment?.temperature?.source || 'Not recorded'}<br />Humidity: {demoEnabled ? 'DEMO' : row.environment?.humidity?.source || 'Not recorded'}</td>
+          {columns.map(([label, cell]) => <td key={label}>{cell(row, sample)}</td>)}
         </tr>)}</tbody>
       </table></div>}
   </Panel>;

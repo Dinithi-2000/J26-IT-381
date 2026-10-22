@@ -60,7 +60,7 @@ test('every category displays its correct label and synthetic disclaimer without
   for (const category of ['Low', 'Medium', 'High']) {
     const html = render({result: result(category)});
     assert(html.includes(`${category} Risk`)); assert(html.includes(RISK_DISCLAIMER));
-    assert(html.includes('SYNTHETIC_DEMO')); assert(html.includes('Not verified (null)'));
+    assert(html.includes('Not verified (null)'));
     assert(!/seven.day|7.day|confidence|accuracy|\d+-day forecast/i.test(html));
   }
 });
@@ -68,7 +68,7 @@ test('every category displays its correct label and synthetic disclaimer without
 test('missing readings, no sample and demo mode render helpful empty states without predictions', () => {
   const html = render({reading: null}); assert(html.includes('No stored sensor reading'));
   assert.match(html, /disabled="">Request risk prediction/);
-  assert(html.includes('No synthetic risk predictions have been stored'));
+  assert(html.includes('No risk predictions have been stored'));
   assert(render({demo: true}).includes('Turn it off'));
   const noSample = renderToStaticMarkup(React.createElement(View, {state: state({reading: null}), sample: null}));
   assert(noSample.includes('No registered sample selected'));
@@ -77,7 +77,7 @@ test('missing readings, no sample and demo mode render helpful empty states with
 test('loading skeletons, busy controls and errors render accessibly', () => {
   const html = render({readingStatus: 'loading', historyStatus: 'loading', predictionStatus: 'loading'});
   assert(html.includes('skeleton')); assert(html.includes('Loading stored sensor reading'));
-  assert(html.includes('Loading synthetic risk prediction history'));
+  assert(html.includes('Loading risk prediction history'));
   assert(html.includes('aria-busy="true"')); assert(html.includes('role="status"'));
   assert(render({error: 'Model 02 timed out.'}).includes('role="alert"'));
 });
@@ -86,7 +86,7 @@ test('risk history is separate, paginated and identifies historical reading mism
   const html = render({history: [result('High')], pagination: {page: 1, pages: 2, total: 13}});
   assert(html.includes('Historical risk predictions')); assert(html.includes('High Risk'));
   assert(html.includes('Page 1 of 2')); assert(html.includes('13 records'));
-  assert(html.includes('Next risk page')); assert(html.includes('Training provenance'));
+  assert(html.includes('Next risk page')); assert(html.includes('Not validated'));
   assert(render({result: {...result('Low'), sensorReadingId: '000000000000000000000002'}}).includes('different reading'));
 });
 
@@ -120,7 +120,7 @@ test('Model 01 result displays the stored photograph, actual class, score and cl
   const html = renderToStaticMarkup(React.createElement(ImageResult, {row}));
   assert(html.includes(row.imageUrl)); assert(html.includes('good_quality')); assert(html.includes('83.6%'));
   assert(html.includes('Classification timestamp')); assert(html.includes('Manual upload')); assert(html.includes('test-model'));
-  assert(html.includes('not calibrated confidence')); assert(!html.includes('SYNTHETIC_DEMO'));
+  assert(html.includes('confirmed by a lab test')); assert(!html.includes('SYNTHETIC_DEMO'));
 });
 
 test('Model 01 missing and incomplete results never fabricate a confidence score or timestamp', () => {
@@ -139,7 +139,7 @@ test('unified Module 02 overview retains both models and registration guidance w
   const html = renderToStaticMarkup(React.createElement(MemoryRouter, null,
     React.createElement(QualityProvider, null, React.createElement(Dashboard))));
   for (const text of ['Unified Model 01 and Model 02 outputs', 'Image condition prototype',
-    'Storage Deterioration Risk', 'SYNTHETIC_DEMO', 'Quality monitoring', 'No registered sample selected']) assert(html.includes(text), text);
+    'Storage Deterioration Risk', 'Research prototype', 'Quality monitoring', 'No registered sample selected']) assert(html.includes(text), text);
   for (const text of ['Explore presentation demo', 'PRESENTATION DEMO', 'Stored Sample Records', 'PP1']) assert(!html.includes(text), text);
   assert(!html.includes('83.6%'));
 });
@@ -179,15 +179,16 @@ test('risk view blocks two-sensor captures without environmental inputs and labe
 });
 
 
-test('local photo preview explains no persistence or sample association before requesting a result', () => {
+test('local photo preview explains the photo is not saved before requesting a result', () => {
   const html=renderToStaticMarkup(React.createElement(PhotoPreview));
-  for(const text of ['Classify a separate uploaded photograph','Preview operator token','Photograph for preview','Classify photo without saving','not saved','linked to the selected sensor sample']) assert(html.includes(text),text);
+  for(const text of ['Check a photo','Photo (JPEG or PNG)','Check photo','not saved']) assert(html.includes(text),text);
+  assert(!html.includes('Operator token'));
   assert(!html.includes('83.6%'));assert(!html.includes('good_quality'));
 });
 
 test('actual preview result is visibly unlinked and never invents a sample ID or capture time', () => {
   const html=renderToStaticMarkup(React.createElement(ImageResult,{row:{previewOnly:true,imageUrl:'blob:test-photo',analysisStatus:'completed',
     predictedCondition:'good_quality',modelScore:.8355658,analyzedAt:'2026-10-21T00:00:00Z',modelVersion:'test-model',source:'manual_upload'}}));
-  assert(html.includes('Uploaded photograph result - preview only'));assert(html.includes('PHOTO PREVIEW'));assert(html.includes('83.6%'));
-  assert(html.includes('Not available'));assert(!html.includes('undefined'));assert(!html.includes('MODEL 01 / STORED IMAGE'));
+  assert(html.includes('Result'));assert(html.includes('83.6%'));
+  assert(!html.includes('Image captured'));assert(!html.includes('CIN'));assert(!html.includes('undefined'));assert(!html.includes('Manual upload'));
 });

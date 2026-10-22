@@ -68,17 +68,26 @@ export function MeasurementHistory({ sample }) {
   </Panel>;
 }
 
-export function ImageComparison({ sample }) {
+// Example quill photographs shown when a sample has no stored image of its own.
+export const EXAMPLE_IMAGES = {
+  Baseline: { src: '/images/cinnamon-example-baseline.jpg', timestamp: '2026-10-15T14:50:30+05:30' },
+  Current: { src: '/images/cinnamon-example-current.jpg', timestamp: '2026-10-15T15:02:37+05:30' },
+};
+
+export function ImageComparison({ sample, examples }) {
   const { demoEnabled } = useQuality();
   const baseline = sample?.images.find(image => image.role === 'Baseline');
   const current = sample?.images.find(image => image.role === 'Current');
-  return <div className="image-comparison">{[['Baseline', baseline], ['Current', current]].map(([role, image]) =>
-    <figure key={role}>
+  return <div className="image-comparison">{[['Baseline', baseline], ['Current', current]].map(([role, image]) => {
+    const example = !image && examples?.[role];
+    return <figure key={role}>
       {image ? <AssetImage src={image.src} fallback={null} alt={`${role} ${image.kind === 'illustration' ? 'cinnamon illustration, not a captured sample photograph' : 'cinnamon sample photograph'}`} /> :
+        example ? <AssetImage src={example.src} fallback={null} alt={`Example cinnamon quill photograph (${role.toLowerCase()} view), not a stored sample image`} /> :
         <div className="image-placeholder"><Icon name="camera" size={30} /><span>No {role.toLowerCase()} image</span></div>}
-      <figcaption><strong>{role} reference</strong><span>{sample?.id || 'No sample selected'}</span>
-        <span>{image ? formatTimestamp(image.timestamp) : 'Capture not connected'}</span>
+      <figcaption><strong>{role} reference</strong><span>{example ? 'Example photo' : sample?.id || 'No sample selected'}</span>
+        <span>{image ? formatTimestamp(image.timestamp) : example ? formatTimestamp(example.timestamp) : 'Capture not connected'}</span>
         {image && <span className="image-label">{demoEnabled ? 'DEMO DATA · ' : ''}{image.kind === 'illustration' ? 'Illustration, not ESP32-CAM imagery' : 'Sample image record'}</span>}
       </figcaption>
-    </figure>)}</div>;
+    </figure>;
+  })}</div>;
 }
